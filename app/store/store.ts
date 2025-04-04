@@ -24,7 +24,7 @@ interface AppState {
   jobResults: Record<ViewType, JobResultResponse | null>;
   setJobResult: (view: ViewType, result: JobResultResponse | null) => void;
   
-  // Data selectors
+  // Data selectors - store as direct properties instead of getters
   userProfiles: User[] | null;
   authStats: AuthStat[] | null;
   storageUsage: StorageUsageData[] | null;
@@ -34,6 +34,22 @@ interface AppState {
   clearData: (view: ViewType) => void;
   clearAllData: () => void;
 }
+
+// Helper function to extract data from job results
+const extractUserProfiles = (result: JobResultResponse | null): User[] | null => {
+  if (!result) return null;
+  return result.result as User[] || null;
+};
+
+const extractAuthStats = (result: JobResultResponse | null): AuthStat[] | null => {
+  if (!result) return null;
+  return result.result as AuthStat[] || null;
+};
+
+const extractStorageUsage = (result: JobResultResponse | null): StorageUsageData[] | null => {
+  if (!result) return null;
+  return result.result as StorageUsageData[] || null;
+};
 
 // Create the store
 export const useAppStore = create<AppState>((set, get) => ({
@@ -60,6 +76,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     storageTribe: null
   },
   
+  // Initialize derived data as null
+  userProfiles: null,
+  authStats: null,
+  storageUsage: null,
+  
   // Action to set current view
   setCurrentView: (view) => set({ currentView: view }),
   
@@ -70,43 +91,25 @@ export const useAppStore = create<AppState>((set, get) => ({
   setError: (error) => set({ error }),
   
   // Action to set job result
-  setJobResult: (view, result) => set((state) => ({
-    jobResults: {
+  setJobResult: (view, result) => set((state) => {
+    const newJobResults = {
       ...state.jobResults,
       [view]: result
+    };
+    
+    // Update derived data based on the view being updated
+    const updates: Partial<AppState> = { jobResults: newJobResults };
+    
+    if (view === 'userProfiles') {
+      updates.userProfiles = extractUserProfiles(result);
+    } else if (view === 'authStats') {
+      updates.authStats = extractAuthStats(result);
+    } else if (view === 'storageUsage') {
+      updates.storageUsage = extractStorageUsage(result);
     }
-  })),
-  
-  // Data selectors with memoization
-  get userProfiles() {
-    const result = get().jobResults.userProfiles;
-    console.log('userProfiles selector', { result, status: result?.status });
-    // Directly return mock data for now to ensure data is displayed
-    if (result) {
-      return result.result as User[];
-    }
-    return null;
-  },
-  
-  get authStats() {
-    const result = get().jobResults.authStats;
-    console.log('authStats selector', { result, status: result?.status });
-    // Directly return mock data for now to ensure data is displayed
-    if (result) {
-      return result.result as AuthStat[];
-    }
-    return null;
-  },
-  
-  get storageUsage() {
-    const result = get().jobResults.storageUsage;
-    console.log('storageUsage selector', { result, status: result?.status });
-    // Directly return mock data for now to ensure data is displayed
-    if (result) {
-      return result.result as StorageUsageData[];
-    }
-    return null;
-  },
+    
+    return updates;
+  }),
   
   // Action to fetch data for a view
   fetchData: async (view, useMockData = true) => {
@@ -117,18 +120,32 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (useMockData) {
         // Use mock data for demo purposes - synchronously to avoid timing issues
         console.log(`Loading mock data for ${view}`, mockJobResultsMap[view]);
+        const mockResult = mockJobResultsMap[view];
         
-        // Set result immediately to avoid state timing issues
+        // Set result and update derived data immediately
         set((state) => {
-          const newState = {
-            jobResults: {
-              ...state.jobResults,
-              [view]: mockJobResultsMap[view]
-            },
+          const newJobResults = {
+            ...state.jobResults,
+            [view]: mockResult
+          };
+          
+          // Generate updates based on view type
+          const updates: Partial<AppState> = { 
+            jobResults: newJobResults,
             isLoading: false
           };
-          console.log('Setting new state', newState);
-          return newState;
+          
+          // Update derived data
+          if (view === 'userProfiles') {
+            updates.userProfiles = extractUserProfiles(mockResult);
+          } else if (view === 'authStats') {
+            updates.authStats = extractAuthStats(mockResult);
+          } else if (view === 'storageUsage') {
+            updates.storageUsage = extractStorageUsage(mockResult);
+          }
+          
+          console.log('Setting new state', updates);
+          return updates;
         });
         
         return;
@@ -144,14 +161,30 @@ export const useAppStore = create<AppState>((set, get) => ({
       // Poll for job result
       const result = await pollJobStatus(jobId);
       
-      // Set job result
-      set((state) => ({
-        jobResults: {
+      // Set job result and update derived data
+      set((state) => {
+        const newJobResults = {
           ...state.jobResults,
           [view]: result
-        },
-        isLoading: false
-      }));
+        };
+        
+        // Generate updates based on view type
+        const updates: Partial<AppState> = { 
+          jobResults: newJobResults,
+          isLoading: false
+        };
+        
+        // Update derived data
+        if (view === 'userProfiles') {
+          updates.userProfiles = extractUserProfiles(result);
+        } else if (view === 'authStats') {
+          updates.authStats = extractAuthStats(result);
+        } else if (view === 'storageUsage') {
+          updates.storageUsage = extractStorageUsage(result);
+        }
+        
+        return updates;
+      });
       
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -163,12 +196,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   // Action to clear data for a view
-  clearData: (view) => set((state) => ({
-    jobResults: {
+  clearData: (view) => set((state) => {
+    const newJobResults = {
       ...state.jobResults,
       [view]: null
+    };
+    
+    // Generate updates based on view type
+    const updates: Partial<AppState> = { jobResults: newJobResults };
+    
+    // Update derived data
+    if (view === 'userProfiles') {
+      updates.userProfiles = null;
+    } else if (view === 'authStats') {
+      updates.authStats = null;
+    } else if (view === 'storageUsage') {
+      updates.storageUsage = null;
     }
-  })),
+    
+    return updates;
+  }),
   
   // Action to clear all data
   clearAllData: () => set({
@@ -178,6 +225,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       storageUsage: null,
       socialWeb: null,
       storageTribe: null
-    }
+    },
+    userProfiles: null,
+    authStats: null,
+    storageUsage: null
   })
 })); 

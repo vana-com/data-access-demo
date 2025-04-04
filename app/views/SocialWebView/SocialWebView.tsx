@@ -1,7 +1,7 @@
 // app/views/SocialWebView.tsx
 "use client"; // Required for hooks and client-side interactions
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import { RotateCcw, Globe, Link2 } from "lucide-react";
 
@@ -23,9 +23,46 @@ import { GraphCanvas } from "./components/GraphCanvas";
 import { SocialWebHeader } from "./components/SocialWebHeader";
 import { GraphLegends } from "./components/GraphLegends";
 import { GraphNode } from "./types/graph"; // Import base type if needed
+import { useAppStore } from "@/app/store/store";
 
 // Main Refactored Component
 export const SocialWebView: React.FC = () => {
+  // Get store data and fetch function
+  const { fetchData, userProfiles, authStats, storageUsage, isLoading: storeLoading } = useAppStore();
+
+  // Fetch data when the component mounts if not already loaded
+  useEffect(() => {
+    // Create a simple function to safely fetch data based on current state
+    const loadInitialData = async () => {
+      try {
+        // Load profiles first if needed
+        if (!userProfiles) {
+          console.log("Loading user profiles...");
+          await fetchData("userProfiles");
+        }
+        
+        // Using a separate condition to avoid dependency issues
+        if (!authStats) {
+          console.log("Loading auth stats...");
+          await fetchData("authStats");
+        }
+        
+        // Load storage data if needed
+        if (!storageUsage) {
+          console.log("Loading storage usage...");
+          await fetchData("storageUsage");
+        }
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+      }
+    };
+    
+    // Only trigger loading if we're not already loading and need data
+    if (!storeLoading && (!userProfiles || !authStats || !storageUsage)) {
+      loadInitialData();
+    }
+  }, [fetchData, userProfiles, authStats, storageUsage, storeLoading]);
+
   // Ref for accessing ForceGraph methods (e.g., zoom, center)
   const graphRef = useRef<ForceGraphMethods<NodeObject<GraphNode>>>(null);
 
@@ -52,7 +89,7 @@ export const SocialWebView: React.FC = () => {
   // It depends on filters and selection from the interactions hook
   const {
     graphData,
-    isLoading,
+    isLoading: graphLoading,
     error,
     uniqueLocales,
     uniqueSources,
@@ -71,8 +108,22 @@ export const SocialWebView: React.FC = () => {
     connectionMode
   );
 
+  // Force graph rebuild when data changes - removed direct graphData method call
+  useEffect(() => {
+    if (graphRef.current && graphData.nodes.length > 0) {
+      console.log("Rebuilding graph visualization...");
+      // The graph will automatically update when graphData prop changes
+      // No need to call graphRef.current.graphData() directly
+      
+      // Adjust camera to fit content after data updates
+      setTimeout(() => {
+        graphRef.current?.zoomToFit(400);
+      }, 300);
+    }
+  }, [graphData]);
+
   // --- Loading and Error States ---
-  if (isLoading && graphData.nodes.length === 0) {
+  if ((storeLoading || graphLoading) && graphData.nodes.length === 0) {
     // Show full page loader only on initial load
     return (
       <div className="flex items-center justify-center h-screen w-full bg-background">
@@ -122,20 +173,20 @@ export const SocialWebView: React.FC = () => {
                 Error:{" "}
                 {typeof error === "string" ? error : JSON.stringify(error)}
               </p>
-              {/* Retry Button - Consider implementing retry logic in useGraphData or store */}
-              {/* <Button
-                  onClick={() => {
-                      // Re-trigger fetch (implementation depends on store/hook)
-                      // e.g., fetchData("userProfiles"); fetchData("storageUsage");
-                      console.log("Retry button clicked - implement refetch logic");
-                  }}
-                  variant="destructive"
-                  size="sm"
-                  className="mt-4 inline-flex items-center gap-1"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Retry
-                </Button> */}
+              {/* Retry Button - Implement retry logic with store */}
+              <Button
+                onClick={() => {
+                  fetchData("userProfiles");
+                  fetchData("authStats");
+                  fetchData("storageUsage");
+                }}
+                variant="destructive"
+                size="sm"
+                className="mt-4 inline-flex items-center gap-1"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Retry
+              </Button>
             </div>
           </div>
         </div>
@@ -204,7 +255,7 @@ export const SocialWebView: React.FC = () => {
                 selectedNodeId={selectedNodeId}
                 neighborLinkIds={neighborLinkIds}
                 users={users} // Pass users for link labels
-                isLoading={isLoading} // Pass loading state for overlay
+                isLoading={storeLoading || graphLoading} // Pass combined loading state for overlay
               />
             ) : (
               // No Results View

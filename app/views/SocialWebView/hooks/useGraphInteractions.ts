@@ -1,4 +1,3 @@
-// app/hooks/useGraphInteractions.ts
 import { RefObject, useCallback, useState } from "react";
 import { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import { GraphNode } from "../types/graph";

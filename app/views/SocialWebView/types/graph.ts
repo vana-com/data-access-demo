@@ -1,6 +1,13 @@
-// app/types/graph.ts
-
 import { NodeObject, LinkObject } from "react-force-graph-2d";
+
+/**
+ * Interface for locale statistics
+ */
+export interface LocaleStats {
+  averageStorage: number;
+  userCount: number;
+  locale?: string;
+}
 
 /**
  * Represents a node in the social graph.
@@ -15,6 +22,7 @@ export interface GraphNode {
   authSources: string[]; // List of authentication sources used by the user
   x?: number; // X coordinate assigned by force graph engine
   y?: number; // Y coordinate assigned by force graph engine
+  localeStats?: LocaleStats; // Statistics about the node's locale group
 }
 
 /**
@@ -23,18 +31,26 @@ export interface GraphNode {
  * or node objects (after the force graph library processes them).
  */
 export interface GraphLink {
-  source: string | ForceGraphNodeObject;  // ID or node object 
-  target: string | ForceGraphNodeObject;  // ID or node object
+  source: string | ForceGraphNodeObject; // ID or node object
+  target: string | ForceGraphNodeObject; // ID or node object
   value: number; // Strength or weight of the connection
   source_type: string; // The shared authentication source creating the link
   color: string; // Color determined by the source_type
+  localeStats?: {
+    // Statistics about the locale forming this connection
+    averageStorage: string;
+    userCount: number;
+    locale: string;
+  };
 }
 
 /**
  * Extends GraphNode with properties added by react-force-graph-2d.
  * Used specifically for canvas painting functions.
  */
-export interface ForceGraphNodeObject extends Omit<NodeObject, 'id'>, GraphNode {
+export interface ForceGraphNodeObject
+  extends Omit<NodeObject, "id">,
+    GraphNode {
   // NodeObject properties from react-force-graph-2d
   vx?: number;
   vy?: number;
@@ -56,4 +72,9 @@ export interface ForceGraphLinkObject extends LinkObject {
   value?: number;
   source_type?: string;
   color?: string;
+  localeStats?: {
+    averageStorage: string;
+    userCount: number;
+    locale: string;
+  };
 }

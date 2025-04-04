@@ -1,4 +1,3 @@
-// app/lib/graphUtils.tsx
 import { Wifi } from "lucide-react";
 import React from "react";
 import { GraphLink } from "../types/graph";
@@ -98,14 +97,25 @@ export const generateConnectionExplanation = (
   users: { user_id: string; name: string }[]
 ): string => {
   // Handle both string IDs and node objects for source/target
-  const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-  const targetId = typeof link.target === 'string' ? link.target : link.target.id;
-  
+  const sourceId =
+    typeof link.source === "string" ? link.source : link.source.id;
+  const targetId =
+    typeof link.target === "string" ? link.target : link.target.id;
+
   const sourceUser = users.find((u) => u.user_id === sourceId);
   const targetUser = users.find((u) => u.user_id === targetId);
 
   const sourceName = sourceUser?.name || `User ${sourceId.substring(0, 6)}`;
   const targetName = targetUser?.name || `User ${targetId.substring(0, 6)}`;
-  
-  return `${sourceName} and ${targetName} are connected via ${link.source_type}`;
+
+  let explanation = `${sourceName} and ${targetName} are connected via ${link.source_type}`;
+
+  // Add locale stats if available
+  if (link.localeStats) {
+    explanation += `\n📊 ${link.source_type} Stats:`;
+    explanation += `\n• Users: ${link.localeStats.userCount}`;
+    explanation += `\n• Avg Storage: ${link.localeStats.averageStorage}%`;
+  }
+
+  return explanation;
 };

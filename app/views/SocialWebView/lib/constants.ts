@@ -1,5 +1,3 @@
-// app/lib/constants.ts
-
 /**
  * Color palette for different locales (using HSL for theme adaptability).
  */

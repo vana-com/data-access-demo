@@ -1,14 +1,15 @@
-// app/hooks/useGraphData.ts
 import { useAppStore } from "@/app/store/store";
 import { useEffect, useMemo, useState } from "react";
-import {
-  DEFAULT_LOCALE_COLOR,
-  DEFAULT_SOURCE_COLOR,
-  LOCALE_COLORS,
-  SOURCE_COLORS,
-} from "../lib/constants";
+import { DEFAULT_LOCALE_COLOR, LOCALE_COLORS } from "../lib/constants";
 import { GraphLink, GraphNode } from "../types/graph";
 import { AuthSource } from "@/app/types";
+
+// Interface for locale statistics
+interface LocaleStats {
+  averageStorage: number;
+  userCount: number;
+  totalStorage: number;
+}
 
 /**
  * Custom hook to manage fetching, processing, and filtering data for the social graph.
@@ -36,13 +37,18 @@ export const useGraphData = (
     nodes: GraphNode[];
     links: GraphLink[];
   }>({ nodes: [], links: [] });
-  
+
   // State for neighbor highlighting
   const [neighborNodeIds, setNeighborNodeIds] = useState<Set<string>>(
     new Set()
   );
   const [neighborLinkIds, setNeighborLinkIds] = useState<Set<GraphLink>>(
     new Set()
+  );
+
+  // Store locale statistics for tooltips and visualization
+  const [localeStats, setLocaleStats] = useState<Record<string, LocaleStats>>(
+    {}
   );
 
   // Fetch data on mount if not already loaded
@@ -118,6 +124,46 @@ export const useGraphData = (
     }));
   }, [storageUsage, users]);
 
+  // Calculate statistics by locale (average storage usage, etc.)
+  useEffect(() => {
+    if (users.length === 0 || storageMetricsData.length === 0) return;
+
+    // Create a map of user_id to storage percent
+    const storageMap = new Map(
+      storageMetricsData.map((s) => [s.user_id, s.percent_used])
+    );
+
+    // Group users by locale and calculate stats
+    const localeStatsMap: Record<string, LocaleStats> = {};
+
+    users.forEach((user) => {
+      const locale = user.locale;
+      const storagePercent = storageMap.get(user.user_id) || 0;
+
+      // Initialize locale stats if not already done
+      if (!localeStatsMap[locale]) {
+        localeStatsMap[locale] = {
+          userCount: 0,
+          totalStorage: 0,
+          averageStorage: 0,
+        };
+      }
+
+      // Update statistics
+      localeStatsMap[locale].userCount++;
+      localeStatsMap[locale].totalStorage += storagePercent;
+    });
+
+    // Calculate averages
+    for (const locale in localeStatsMap) {
+      const stats = localeStatsMap[locale];
+      stats.averageStorage = stats.totalStorage / stats.userCount;
+    }
+
+    setLocaleStats(localeStatsMap);
+    console.log("Locale statistics calculated:", localeStatsMap);
+  }, [users, storageMetricsData]);
+
   // Memoize unique filter options
   const uniqueLocales = useMemo(
     () =>
@@ -158,45 +204,73 @@ export const useGraphData = (
       userAuthSourcesMap.get(auth.user_id)?.push(auth.source);
     });
 
-    const baseNodes: GraphNode[] = users.map((user) => ({
-      id: user.user_id,
-      name: user.name,
-      locale: user.locale,
-      storage: userStorageMap.get(user.user_id),
-      color: LOCALE_COLORS[user.locale] || DEFAULT_LOCALE_COLOR,
-      authSources: userAuthSourcesMap.get(user.user_id) || [],
-    }));
+    // Add locale statistics to node data
+    const baseNodes: GraphNode[] = users.map((user) => {
+      const userLocale = user.locale;
+      const localeAvgStorage = localeStats[userLocale]?.averageStorage || 0;
+      const localeUserCount = localeStats[userLocale]?.userCount || 0;
+
+      return {
+        id: user.user_id,
+        name: user.name,
+        locale: userLocale,
+        storage: userStorageMap.get(user.user_id),
+        color: LOCALE_COLORS[userLocale] || DEFAULT_LOCALE_COLOR,
+        authSources: userAuthSourcesMap.get(user.user_id) || [],
+        localeStats: {
+          averageStorage: localeAvgStorage,
+          userCount: localeUserCount,
+        },
+      };
+    });
 
     // --- 2. Create Base Links ---
-    const usersBySource: Record<string, string[]> = {};
-    authSourcesData.forEach((auth) => {
-      if (!usersBySource[auth.source]) usersBySource[auth.source] = [];
-      // Ensure user exists in baseNodes before adding
-      if (baseNodes.some((n) => n.id === auth.user_id)) {
-        usersBySource[auth.source].push(auth.user_id);
+    // Modified to connect users by locale instead of auth source
+    const usersByLocale: Record<string, string[]> = {};
+
+    // Group users by locale
+    users.forEach((user) => {
+      const locale = user.locale;
+      if (!usersByLocale[locale]) {
+        usersByLocale[locale] = [];
       }
+      usersByLocale[locale].push(user.user_id);
     });
 
     const baseLinks: GraphLink[] = [];
-    const linkSet = new Set<string>(); // Avoid duplicates (A-B vs B-A for same source)
+    const linkSet = new Set<string>(); // Avoid duplicates (A-B vs B-A for same locale)
 
-    Object.entries(usersBySource).forEach(([source, userIds]) => {
-      for (let i = 0; i < userIds.length; i++) {
-        for (let j = i + 1; j < userIds.length; j++) {
-          const sourceId = userIds[i];
-          const targetId = userIds[j];
-          const linkId1 = `${sourceId}-${targetId}-${source}`;
-          const linkId2 = `${targetId}-${sourceId}-${source}`;
+    // Create links between users who share the same locale
+    Object.entries(usersByLocale).forEach(([locale, userIds]) => {
+      // Only create links if there are multiple users with this locale
+      if (userIds.length > 1) {
+        // Get the average storage for this locale
+        const avgStorage = localeStats[locale]?.averageStorage || 0;
+        const userCount = localeStats[locale]?.userCount || 0;
 
-          if (!linkSet.has(linkId1) && !linkSet.has(linkId2)) {
-            baseLinks.push({
-              source: sourceId,
-              target: targetId,
-              value: 1, // Simple connection value
-              source_type: source,
-              color: SOURCE_COLORS[source] || DEFAULT_SOURCE_COLOR,
-            });
-            linkSet.add(linkId1);
+        for (let i = 0; i < userIds.length; i++) {
+          for (let j = i + 1; j < userIds.length; j++) {
+            const sourceId = userIds[i];
+            const targetId = userIds[j];
+            const linkId1 = `${sourceId}-${targetId}-${locale}`;
+            const linkId2 = `${targetId}-${sourceId}-${locale}`;
+
+            if (!linkSet.has(linkId1) && !linkSet.has(linkId2)) {
+              baseLinks.push({
+                source: sourceId,
+                target: targetId,
+                value: 1, // Simple connection value
+                source_type: locale, // Use locale as source_type for consistency
+                color: LOCALE_COLORS[locale] || DEFAULT_LOCALE_COLOR, // Use locale color
+                // Add locale statistics to the link for tooltips
+                localeStats: {
+                  averageStorage: avgStorage.toFixed(1),
+                  userCount,
+                  locale,
+                },
+              });
+              linkSet.add(linkId1);
+            }
           }
         }
       }
@@ -212,22 +286,33 @@ export const useGraphData = (
       filteredNodes = filteredNodes.filter(
         (node) => node.locale === filteredLocale
       );
+      // For locale connections, we need to filter links differently
+      filteredLinks = filteredLinks.filter(
+        (link) => link.source_type === filteredLocale
+      );
     }
 
-    // Source Filter
+    // Source Filter - still useful for filtering by auth source
     if (filteredSource) {
-      filteredLinks = filteredLinks.filter(
-        (link) => link.source_type === filteredSource
+      // Instead of filtering links, filter nodes with this auth source
+      const nodesWithSource = new Set(
+        authSourcesData
+          .filter((auth) => auth.source === filteredSource)
+          .map((auth) => auth.user_id)
       );
-      const connectedNodeIds = new Set([
-        ...filteredLinks.map((link) => link.source),
-        ...filteredLinks.map((link) => link.target),
-      ]);
-      // Keep nodes that are part of the filtered links OR match the locale filter (if applied)
+
       filteredNodes = filteredNodes.filter(
         (node) =>
-          connectedNodeIds.has(node.id) ||
+          nodesWithSource.has(node.id) ||
           (filteredLocale && node.locale === filteredLocale)
+      );
+
+      // Then filter links to only include filtered nodes
+      const filteredNodeIds = new Set(filteredNodes.map((n) => n.id));
+      filteredLinks = filteredLinks.filter(
+        (link) =>
+          filteredNodeIds.has(link.source as string) &&
+          filteredNodeIds.has(link.target as string)
       );
     }
 
@@ -261,6 +346,7 @@ export const useGraphData = (
     filteredLocale, // Filter criteria
     filteredSource, // Filter criteria
     searchQuery, // Filter criteria
+    localeStats, // Added dependency for locale statistics
     // selectedNodeId removed from dependencies to avoid rebuilds when selecting nodes
   ]);
 
@@ -275,8 +361,8 @@ export const useGraphData = (
     }
 
     // Get the filtered node IDs from the current graph data
-    const filteredNodeIds = new Set(graphData.nodes.map(node => node.id));
-    
+    const filteredNodeIds = new Set(graphData.nodes.map((node) => node.id));
+
     // Only proceed if the selected node exists in the filtered data
     if (!filteredNodeIds.has(selectedNodeId)) {
       setNeighborNodeIds(new Set());
@@ -285,7 +371,7 @@ export const useGraphData = (
     }
 
     console.log("Calculating neighbors for selected node:", selectedNodeId);
-    
+
     // Calculate neighbors for the selected node
     const newNeighborNodeIds = new Set<string>();
     const newNeighborLinkIds = new Set<GraphLink>();
@@ -323,5 +409,6 @@ export const useGraphData = (
     neighborNodeIds,
     neighborLinkIds,
     users, // Return users array for lookups elsewhere (e.g., legends)
+    localeStats, // Export locale stats for use in other components
   };
 };

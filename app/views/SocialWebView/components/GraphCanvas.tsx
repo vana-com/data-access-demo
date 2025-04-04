@@ -1,4 +1,3 @@
-// app/components/GraphCanvas.tsx
 "use client"; // This component uses refs and client-side libraries
 
 import { Users } from "lucide-react";
@@ -10,16 +9,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  ForceGraphMethods,
-  NodeObject
-} from "react-force-graph-2d";
+import { ForceGraphMethods, NodeObject } from "react-force-graph-2d";
 import { generateConnectionExplanation } from "../lib/graph-utils";
 import {
   ForceGraphLinkObject,
   ForceGraphNodeObject,
   GraphLink,
-  GraphNode
+  GraphNode,
 } from "../types/graph";
 
 // Local Skeleton for loading state within this component
@@ -128,6 +124,22 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       console.log("GraphCanvas ResizeObserver disconnected.");
     };
   }, []); // Empty dependency array ensures this runs once on mount
+
+  // Fit graph to view when data or dimensions change
+  useEffect(() => {
+    // Only attempt to fit if we have nodes and the graph is initialized
+    if (graphData.nodes.length > 0 && graphRef.current) {
+      // Use setTimeout to ensure the graph has initialized properly
+      const timer = setTimeout(() => {
+        if (graphRef.current) {
+          // Zoom out to fit all nodes with some padding
+          graphRef.current.zoomToFit(400, 60);
+        }
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [graphData.nodes, dimensions, graphRef]);
 
   // Memoized link label generation
   const memoizedLinkLabel = useCallback(

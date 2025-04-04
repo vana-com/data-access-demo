@@ -1,9 +1,8 @@
-// app/hooks/useGraphRendering.ts
 import { useCallback } from "react";
 import {
   ForceGraphNodeObject,
   ForceGraphLinkObject,
-  GraphLink
+  GraphLink,
 } from "../types/graph";
 import {
   DEFAULT_LOCALE_COLOR,
@@ -51,7 +50,14 @@ export const useGraphRendering = (
       const isNeighbor = neighborNodeIds.has(nodeId);
       const isHovered = nodeId === hoveredNodeId;
 
-      let radius = baseRadius;
+      // Get the locale average storage usage for scaling
+      const localeAvgStorage = node.localeStats?.averageStorage || 0;
+
+      // Scale factor based on average storage - minimum 1.0, maximum 3.0
+      // This means nodes with higher storage will be up to 3x larger
+      const storageScaleFactor = 1 + Math.min(2, localeAvgStorage / 50); // Divide by 50 to normalize (assuming 100% is max)
+
+      let radius = baseRadius * storageScaleFactor; // Apply storage-based scaling
       let nodeColor = node.color || DEFAULT_LOCALE_COLOR;
       let borderColor = "rgba(255, 255, 255, 0.6)"; // Default border
 
@@ -67,19 +73,51 @@ export const useGraphRendering = (
 
       // Highlight selected node
       if (isSelected) {
-        radius = baseRadius * 1.8;
+        radius *= 1.5; // Additional size increase for selected
         borderColor = "hsl(50, 100%, 50%)"; // Bright yellow border
       }
       // Highlight neighbors (if not the selected node itself)
       else if (isNeighbor) {
-        radius = baseRadius * 1.2;
+        radius *= 1.2; // Additional size increase for neighbors
         borderColor = "rgba(255, 255, 255, 0.8)"; // Slightly brighter border
       }
 
       // Highlight hovered node (overrides neighbor/default, but not selected)
       if (isHovered && !isSelected) {
-        radius = baseRadius * 1.5;
+        radius *= 1.3; // Additional size increase for hover
         borderColor = "rgba(255, 255, 255, 1)"; // Bright white border
+      }
+
+      // --- Draw Storage Usage Indicator Ring ---
+      // Draw an outer ring that shows the actual storage usage of this node (not the average)
+      if (node.storage !== undefined && node.storage > 0) {
+        const storagePercent = node.storage / 100; // Convert to 0-1 range
+        const storageAngle = storagePercent * 2 * Math.PI;
+
+        // Draw storage indicator arc
+        ctx.beginPath();
+        ctx.arc(
+          node.x,
+          node.y,
+          radius + 1.2 / globalScale,
+          -Math.PI / 2, // Start at top
+          -Math.PI / 2 + storageAngle, // End based on storage percentage
+          false
+        );
+
+        // Use a gradient color based on storage percentage
+        let storageColor;
+        if (storagePercent < 0.5) {
+          storageColor = "rgba(0, 255, 0, 0.7)"; // Green for low usage
+        } else if (storagePercent < 0.75) {
+          storageColor = "rgba(255, 255, 0, 0.7)"; // Yellow for medium usage
+        } else {
+          storageColor = "rgba(255, 50, 50, 0.7)"; // Red for high usage
+        }
+
+        ctx.strokeStyle = storageColor;
+        ctx.lineWidth = 1.2 / globalScale;
+        ctx.stroke();
       }
 
       // --- Draw Node ---
@@ -125,6 +163,55 @@ export const useGraphRendering = (
         ctx.fillStyle = textColor;
         // Position label slightly below the node
         ctx.fillText(label, node.x, node.y + radius + fontSize * 1.2);
+
+        // Draw locale stats for the first node of each locale cluster
+        // To avoid cluttering, we'll only draw this for selected nodes or when zoomed in sufficiently
+        if (
+          (isSelected || globalScale > 5) &&
+          node.localeStats &&
+          node.localeStats.userCount > 0
+        ) {
+          const statsY = node.y + radius + fontSize * 2.8;
+          const smallerFontSize = fontSize * 0.85;
+
+          ctx.font = `${smallerFontSize}px Inter, sans-serif`;
+          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+
+          // Format the storage percentage to one decimal place
+          const avgStorage = node.localeStats.averageStorage.toFixed
+            ? node.localeStats.averageStorage.toFixed(1)
+            : node.localeStats.averageStorage;
+
+          // Show the locale name and storage usage
+          ctx.fillText(
+            `${node.locale} • Storage: ${avgStorage}%`,
+            node.x,
+            statsY
+          );
+
+          // Show user count on next line
+          ctx.fillText(
+            `${node.localeStats.userCount} users`,
+            node.x,
+            statsY + smallerFontSize * 1.2
+          );
+        }
+      }
+
+      // Always show a small indicator of storage percentage near the node
+      if (localeAvgStorage > 0 && !showLabel) {
+        const tinyFontSize = Math.max(0.8, 2 / globalScale);
+        ctx.font = `${tinyFontSize}px Inter, sans-serif`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Display a compact storage indicator when not showing full labels
+        ctx.fillText(
+          `${Math.round(localeAvgStorage)}%`,
+          node.x,
+          node.y + radius + tinyFontSize
+        );
       }
     },
     [selectedNodeId, hoveredNodeId, neighborNodeIds] // Dependencies for recalculation

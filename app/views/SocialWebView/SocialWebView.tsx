@@ -1,4 +1,3 @@
-// app/views/SocialWebView.tsx
 "use client"; // Required for hooks and client-side interactions
 
 import React, { useRef, useEffect } from "react";
@@ -28,7 +27,13 @@ import { useAppStore } from "@/app/store/store";
 // Main Refactored Component
 export const SocialWebView: React.FC = () => {
   // Get store data and fetch function
-  const { fetchData, userProfiles, authStats, storageUsage, isLoading: storeLoading } = useAppStore();
+  const {
+    fetchData,
+    userProfiles,
+    authStats,
+    storageUsage,
+    isLoading: storeLoading,
+  } = useAppStore();
 
   // Fetch data when the component mounts if not already loaded
   useEffect(() => {
@@ -40,13 +45,13 @@ export const SocialWebView: React.FC = () => {
           console.log("Loading user profiles...");
           await fetchData("userProfiles");
         }
-        
+
         // Using a separate condition to avoid dependency issues
         if (!authStats) {
           console.log("Loading auth stats...");
           await fetchData("authStats");
         }
-        
+
         // Load storage data if needed
         if (!storageUsage) {
           console.log("Loading storage usage...");
@@ -56,7 +61,7 @@ export const SocialWebView: React.FC = () => {
         console.error("Error loading initial data:", error);
       }
     };
-    
+
     // Only trigger loading if we're not already loading and need data
     if (!storeLoading && (!userProfiles || !authStats || !storageUsage)) {
       loadInitialData();
@@ -96,6 +101,7 @@ export const SocialWebView: React.FC = () => {
     neighborNodeIds,
     neighborLinkIds,
     users, // Get users array for link labels and legends
+    localeStats, // Get locale statistics
   } = useGraphData(filteredLocale, filteredSource, searchQuery, selectedNodeId);
 
   // Hook for providing node and link painting functions
@@ -114,7 +120,7 @@ export const SocialWebView: React.FC = () => {
       console.log("Rebuilding graph visualization...");
       // The graph will automatically update when graphData prop changes
       // No need to call graphRef.current.graphData() directly
-      
+
       // Adjust camera to fit content after data updates
       setTimeout(() => {
         graphRef.current?.zoomToFit(400);
@@ -307,7 +313,7 @@ export const SocialWebView: React.FC = () => {
             selectedNodeId={selectedNodeId}
             hoveredNodeId={hoveredNodeId}
             graphData={graphData}
-            neighborNodeIds={neighborNodeIds}
+            localeStats={localeStats}
           />
         </div>
       </main>

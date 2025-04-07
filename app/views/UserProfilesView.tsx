@@ -37,8 +37,10 @@ export const UserProfilesView: React.FC = () => {
     displayData.length > 0
       ? displayData
           .filter((user) => user.storage.percentUsed !== null)
-          .reduce((sum, user) => sum + user.storage.percentUsed, 0) /
-        displayData.length
+          .reduce(
+            (sum, user) => sum + parseFloat(user.storage.percentUsed),
+            0
+          ) / displayData.length
       : 0;
 
   console.log("UserProfilesView render state:", {
@@ -155,7 +157,7 @@ export const UserProfilesView: React.FC = () => {
                 <div className="w-full bg-border rounded-full h-2">
                   <div
                     className={`${getColorForPercentage(
-                      user.storage.percentUsed || 0
+                      parseFloat(user.storage.percentUsed || "0")
                     )} h-2 rounded-full`}
                     style={{ width: `${user.storage.percentUsed || 0}%` }}
                   />

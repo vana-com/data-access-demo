@@ -64,7 +64,7 @@ export const useGraphData = (
   const uniqueAuthSources = useMemo(() => {
     if (!users.length) return [];
     return Array.from(
-      new Set(users.map(user => user.metadata.source).filter(Boolean))
+      new Set(users.map((user) => user.metadata.source).filter(Boolean))
     ).sort() as string[];
   }, [users]);
 
@@ -77,7 +77,7 @@ export const useGraphData = (
 
     users.forEach((user) => {
       const locale = user.profile.locale;
-      const storagePercent = user.storage.percentUsed || 0;
+      const storagePercent = parseFloat(user.storage.percentUsed || "0");
 
       // Initialize locale stats if not already done
       if (!localeStatsMap[locale]) {
@@ -106,7 +106,9 @@ export const useGraphData = (
   // Memoize unique filter options
   const uniqueLocales = useMemo(
     () =>
-      Array.from(new Set(users.map((user) => user.profile.locale))).sort() as string[],
+      Array.from(
+        new Set(users.map((user) => user.profile.locale))
+      ).sort() as string[],
     [users]
   );
 
@@ -134,7 +136,7 @@ export const useGraphData = (
         id: user.userId,
         name: user.profile.name,
         locale: userLocale,
-        storage: user.storage.percentUsed,
+        storage: parseFloat(user.storage.percentUsed || "0"),
         color: LOCALE_COLORS[userLocale] || DEFAULT_LOCALE_COLOR,
         authSource: user.metadata.source || "Unknown",
         localeStats: {

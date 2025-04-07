@@ -5,13 +5,13 @@ export const mockUsers: User[] = [
   {
     userId: "001",
     email: "john.doe@opendatalabs.xyz",
-    timestamp: 1742766945802,
+    timestamp: "1742766945802",
     profile: {
       name: "John Doe",
       locale: "en-US",
     },
     storage: {
-      percentUsed: 12.67,
+      percentUsed: "12.67",
     },
     metadata: {
       source: "Google",
@@ -22,13 +22,13 @@ export const mockUsers: User[] = [
   {
     userId: "002",
     email: "jane.smith@opendatalabs.xyz",
-    timestamp: 1742800353456,
+    timestamp: "1742800353456",
     profile: {
       name: "Jane Smith",
       locale: "en-GB",
     },
     storage: {
-      percentUsed: 23.45,
+      percentUsed: "23.45",
     },
     metadata: {
       source: "Google",
@@ -39,13 +39,13 @@ export const mockUsers: User[] = [
   {
     userId: "003",
     email: "carlos.rodriguez@opendatalabs.xyz",
-    timestamp: 1742908097321,
+    timestamp: "1742908097321",
     profile: {
       name: "Carlos Rodriguez",
       locale: "es-ES",
     },
     storage: {
-      percentUsed: 45.19,
+      percentUsed: "45.19",
     },
     metadata: {
       source: "Google",
@@ -56,13 +56,13 @@ export const mockUsers: User[] = [
   {
     userId: "004",
     email: "emma.wilson@opendatalabs.xyz",
-    timestamp: 1742908097322,
+    timestamp: "1742908097322",
     profile: {
       name: "Emma Wilson",
       locale: "en-AU",
     },
     storage: {
-      percentUsed: 8.33,
+      percentUsed: "8.33",
     },
     metadata: {
       source: "Google",
@@ -73,13 +73,13 @@ export const mockUsers: User[] = [
   {
     userId: "005",
     email: "yuki.tanaka@opendatalabs.xyz",
-    timestamp: 1742908097323,
+    timestamp: "1742908097323",
     profile: {
       name: "Yuki Tanaka",
       locale: "ja-JP",
     },
     storage: {
-      percentUsed: 67.12,
+      percentUsed: "67.12",
     },
     metadata: {
       source: "Google",
@@ -90,13 +90,13 @@ export const mockUsers: User[] = [
   {
     userId: "006",
     email: "marie.dupont@opendatalabs.xyz",
-    timestamp: 1742908097324,
+    timestamp: "1742908097324",
     profile: {
       name: "Marie Dupont",
       locale: "fr-FR",
     },
     storage: {
-      percentUsed: 32.98,
+      percentUsed: "32.98",
     },
     metadata: {
       source: "Google",
@@ -107,13 +107,13 @@ export const mockUsers: User[] = [
   {
     userId: "007",
     email: "wei.chen@opendatalabs.xyz",
-    timestamp: 1742908097325,
+    timestamp: "1742908097325",
     profile: {
       name: "Wei Chen",
       locale: "zh-CN",
     },
     storage: {
-      percentUsed: 50.75,
+      percentUsed: "50.75",
     },
     metadata: {
       source: "Google",
@@ -124,13 +124,13 @@ export const mockUsers: User[] = [
   {
     userId: "008",
     email: "sophia.muller@opendatalabs.xyz",
-    timestamp: 1742908097326,
+    timestamp: "1742908097326",
     profile: {
       name: "Sophia Müller",
       locale: "de-DE",
     },
     storage: {
-      percentUsed: 14.29,
+      percentUsed: "14.29",
     },
     metadata: {
       source: "Google",
@@ -141,13 +141,13 @@ export const mockUsers: User[] = [
   {
     userId: "009",
     email: "lucas.silva@opendatalabs.xyz",
-    timestamp: 1742908097327,
+    timestamp: "1742908097327",
     profile: {
       name: "Lucas Silva",
       locale: "pt-BR",
     },
     storage: {
-      percentUsed: 88.45,
+      percentUsed: "88.45",
     },
     metadata: {
       source: "Google",
@@ -158,13 +158,13 @@ export const mockUsers: User[] = [
   {
     userId: "010",
     email: "olivia.brown@opendatalabs.xyz",
-    timestamp: 1742908097328,
+    timestamp: "1742908097328",
     profile: {
       name: "Olivia Brown",
       locale: "en-CA",
     },
     storage: {
-      percentUsed: 36.14,
+      percentUsed: "36.14",
     },
     metadata: {
       source: "Google",
@@ -176,13 +176,13 @@ export const mockUsers: User[] = [
   {
     userId: "011",
     email: "raj.patel@opendatalabs.xyz",
-    timestamp: 1742908097329,
+    timestamp: "1742908097329",
     profile: {
       name: "Raj Patel",
       locale: "en-IN",
     },
     storage: {
-      percentUsed: 27.53,
+      percentUsed: "27.53",
     },
     metadata: {
       source: "Google",
@@ -193,13 +193,13 @@ export const mockUsers: User[] = [
   {
     userId: "012",
     email: "anna.kowalski@opendatalabs.xyz",
-    timestamp: 1742908097330,
+    timestamp: "1742908097330",
     profile: {
       name: "Anna Kowalski",
       locale: "pl-PL",
     },
     storage: {
-      percentUsed: 42.67,
+      percentUsed: "42.67",
     },
     metadata: {
       source: "Google",
@@ -210,13 +210,13 @@ export const mockUsers: User[] = [
   {
     userId: "013",
     email: "hiroshi.yamamoto@opendatalabs.xyz",
-    timestamp: 1742908097331,
+    timestamp: "1742908097331",
     profile: {
       name: "Hiroshi Yamamoto",
       locale: "ja-JP",
     },
     storage: {
-      percentUsed: 71.29,
+      percentUsed: "71.29",
     },
     metadata: {
       source: "Google",
@@ -227,13 +227,13 @@ export const mockUsers: User[] = [
   {
     userId: "014",
     email: "fatima.alfarsi@opendatalabs.xyz",
-    timestamp: 1742908097332,
+    timestamp: "1742908097332",
     profile: {
       name: "Fatima Al-Farsi",
       locale: "ar-SA",
     },
     storage: {
-      percentUsed: 19.84,
+      percentUsed: "19.84",
     },
     metadata: {
       source: "Google",
@@ -244,13 +244,13 @@ export const mockUsers: User[] = [
   {
     userId: "015",
     email: "kim.minji@opendatalabs.xyz",
-    timestamp: 1742908097333,
+    timestamp: "1742908097333",
     profile: {
       name: "Kim Min-Ji",
       locale: "ko-KR",
     },
     storage: {
-      percentUsed: 55.32,
+      percentUsed: "55.32",
     },
     metadata: {
       source: "Google",
@@ -262,13 +262,13 @@ export const mockUsers: User[] = [
   {
     userId: "016",
     email: "michael.johnson@opendatalabs.xyz",
-    timestamp: 1742908097334,
+    timestamp: "1742908097334",
     profile: {
       name: "Michael Johnson",
       locale: "en-US",
     },
     storage: {
-      percentUsed: 28.76,
+      percentUsed: "28.76",
     },
     metadata: {
       source: "Google",
@@ -279,13 +279,13 @@ export const mockUsers: User[] = [
   {
     userId: "017",
     email: "sarah.williams@opendatalabs.xyz",
-    timestamp: 1742908097335,
+    timestamp: "1742908097335",
     profile: {
       name: "Sarah Williams",
       locale: "en-US",
     },
     storage: {
-      percentUsed: 63.19,
+      percentUsed: "63.19",
     },
     metadata: {
       source: "Google",
@@ -296,13 +296,13 @@ export const mockUsers: User[] = [
   {
     userId: "018",
     email: "david.thompson@opendatalabs.xyz",
-    timestamp: 1742908097336,
+    timestamp: "1742908097336",
     profile: {
       name: "David Thompson",
       locale: "en-GB",
     },
     storage: {
-      percentUsed: 41.88,
+      percentUsed: "41.88",
     },
     metadata: {
       source: "Google",
@@ -313,13 +313,13 @@ export const mockUsers: User[] = [
   {
     userId: "019",
     email: "emily.davis@opendatalabs.xyz",
-    timestamp: 1742908097337,
+    timestamp: "1742908097337",
     profile: {
       name: "Emily Davis",
       locale: "en-GB",
     },
     storage: {
-      percentUsed: 17.43,
+      percentUsed: "17.43",
     },
     metadata: {
       source: "Google",
@@ -330,13 +330,13 @@ export const mockUsers: User[] = [
   {
     userId: "020",
     email: "pedro.sanchez@opendatalabs.xyz",
-    timestamp: 1742908097338,
+    timestamp: "1742908097338",
     profile: {
       name: "Pedro Sanchez",
       locale: "es-ES",
     },
     storage: {
-      percentUsed: 82.56,
+      percentUsed: "82.56",
     },
     metadata: {
       source: "Google",
@@ -347,13 +347,13 @@ export const mockUsers: User[] = [
   {
     userId: "021",
     email: "sofia.garcia@opendatalabs.xyz",
-    timestamp: 1742908097339,
+    timestamp: "1742908097339",
     profile: {
       name: "Sofia Garcia",
       locale: "es-ES",
     },
     storage: {
-      percentUsed: 34.91,
+      percentUsed: "34.91",
     },
     metadata: {
       source: "Google",
@@ -364,13 +364,13 @@ export const mockUsers: User[] = [
   {
     userId: "022",
     email: "kenji.sato@opendatalabs.xyz",
-    timestamp: 1742908097340,
+    timestamp: "1742908097340",
     profile: {
       name: "Kenji Sato",
       locale: "ja-JP",
     },
     storage: {
-      percentUsed: 49.23,
+      percentUsed: "49.23",
     },
     metadata: {
       source: "Google",
@@ -381,13 +381,13 @@ export const mockUsers: User[] = [
   {
     userId: "023",
     email: "aiko.nakamura@opendatalabs.xyz",
-    timestamp: 1742908097341,
+    timestamp: "1742908097",
     profile: {
       name: "Aiko Nakamura",
       locale: "ja-JP",
     },
     storage: {
-      percentUsed: 73.67,
+      percentUsed: "73.67",
     },
     metadata: {
       source: "Google",
@@ -398,13 +398,13 @@ export const mockUsers: User[] = [
   {
     userId: "024",
     email: "jean.petit@opendatalabs.xyz",
-    timestamp: 1742908097342,
+    timestamp: "1742908097",
     profile: {
       name: "Jean Petit",
       locale: "fr-FR",
     },
     storage: {
-      percentUsed: 25.18,
+      percentUsed: "25.18",
     },
     metadata: {
       source: "Google",
@@ -415,13 +415,13 @@ export const mockUsers: User[] = [
   {
     userId: "025",
     email: "sophie.martin@opendatalabs.xyz",
-    timestamp: 1742908097343,
+    timestamp: "1742908097",
     profile: {
       name: "Sophie Martin",
       locale: "fr-FR",
     },
     storage: {
-      percentUsed: 58.94,
+      percentUsed: "58.94",
     },
     metadata: {
       source: "Google",
@@ -432,13 +432,13 @@ export const mockUsers: User[] = [
   {
     userId: "026",
     email: "li.wei@opendatalabs.xyz",
-    timestamp: 1742908097344,
+    timestamp: "1742908097",
     profile: {
       name: "Li Wei",
       locale: "zh-CN",
     },
     storage: {
-      percentUsed: 31.45,
+      percentUsed: "31.45",
     },
     metadata: {
       source: "Google",
@@ -449,13 +449,13 @@ export const mockUsers: User[] = [
   {
     userId: "027",
     email: "zhang.min@opendatalabs.xyz",
-    timestamp: 1742908097345,
+    timestamp: "1742908097",
     profile: {
       name: "Zhang Min",
       locale: "zh-CN",
     },
     storage: {
-      percentUsed: 69.37,
+      percentUsed: "69.37",
     },
     metadata: {
       source: "Google",
@@ -466,13 +466,13 @@ export const mockUsers: User[] = [
   {
     userId: "028",
     email: "thomas.weber@opendatalabs.xyz",
-    timestamp: 1742908097346,
+    timestamp: "1742908097",
     profile: {
       name: "Thomas Weber",
       locale: "de-DE",
     },
     storage: {
-      percentUsed: 44.26,
+      percentUsed: "44.26",
     },
     metadata: {
       source: "Google",
@@ -483,13 +483,13 @@ export const mockUsers: User[] = [
   {
     userId: "029",
     email: "hannah.schmidt@opendatalabs.xyz",
-    timestamp: 1742908097347,
+    timestamp: "1742908097",
     profile: {
       name: "Hannah Schmidt",
       locale: "de-DE",
     },
     storage: {
-      percentUsed: 22.87,
+      percentUsed: "22.87",
     },
     metadata: {
       source: "Google",
@@ -500,13 +500,13 @@ export const mockUsers: User[] = [
   {
     userId: "030",
     email: "mateus.oliveira@opendatalabs.xyz",
-    timestamp: 1742908097348,
+    timestamp: "1742908097",
     profile: {
       name: "Mateus Oliveira",
       locale: "pt-BR",
     },
     storage: {
-      percentUsed: 53.41,
+      percentUsed: "53.41",
     },
     metadata: {
       source: "Google",

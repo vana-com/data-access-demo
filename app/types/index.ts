@@ -8,7 +8,7 @@ export interface User {
     locale: string;
   };
   storage: {
-    percentUsed: number | null;
+    percentUsed: string | null;
   };
   metadata: {
     source: string | null;

@@ -35,7 +35,9 @@ export const UserProfilesView: React.FC = () => {
   // Calculate average storage usage
   const averageUsage =
     displayData.length > 0
-      ? displayData.reduce((sum, user) => sum + user.storage.percentUsed, 0) /
+      ? displayData
+          .filter((user) => user.storage.percentUsed !== null)
+          .reduce((sum, user) => sum + user.storage.percentUsed, 0) /
         displayData.length
       : 0;
 
@@ -115,37 +117,47 @@ export const UserProfilesView: React.FC = () => {
               {/* Source */}
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">Source:</span>
-                <span className="font-medium">{user.metadata.source}</span>
+                <span className="font-medium">
+                  {user.metadata.source || "N/A"}
+                </span>
               </div>
 
               {/* Collection Date */}
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">Collection Date:</span>
                 <span>
-                  {new Date(user.metadata.collectionDate).toLocaleDateString()}
+                  {user.metadata.collectionDate
+                    ? new Date(
+                        user.metadata.collectionDate
+                      ).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
 
               {/* Timestamp */}
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">Created:</span>
-                <span>{formatDate(user.timestamp)}</span>
+                <span>{formatDate(parseInt(user.timestamp + 100))}</span>
               </div>
 
               {/* Storage Usage with visual bar */}
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Storage Usage:</span>
-                  <span className="font-medium">
-                    {user.storage.percentUsed}%
-                  </span>
+                  {user.storage.percentUsed ? (
+                    <span className="font-medium">
+                      {user.storage.percentUsed}%
+                    </span>
+                  ) : (
+                    <span className="font-medium">N/A</span>
+                  )}
                 </div>
                 <div className="w-full bg-border rounded-full h-2">
                   <div
                     className={`${getColorForPercentage(
-                      user.storage.percentUsed
+                      user.storage.percentUsed || 0
                     )} h-2 rounded-full`}
-                    style={{ width: `${user.storage.percentUsed}%` }}
+                    style={{ width: `${user.storage.percentUsed || 0}%` }}
                   />
                 </div>
               </div>

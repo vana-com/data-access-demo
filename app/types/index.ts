@@ -2,16 +2,16 @@
 export interface User {
   userId: string;
   email: string;
-  timestamp: number;
+  timestamp: string;
   profile: {
     name: string;
     locale: string;
   };
   storage: {
-    percentUsed: number;
+    percentUsed: number | null;
   };
   metadata: {
-    source: string;
+    source: string | null;
     collectionDate: string;
     dataType: string;
   };

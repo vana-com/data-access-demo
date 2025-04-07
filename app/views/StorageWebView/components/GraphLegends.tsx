@@ -7,15 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Globe, Info, Link2, Database } from "lucide-react";
+import { Database, Globe, Info } from "lucide-react";
 import React from "react";
-import {
-  DEFAULT_LOCALE_COLOR,
-  DEFAULT_SOURCE_COLOR,
-  LOCALE_COLORS,
-  SOURCE_COLORS,
-} from "../lib/constants";
-import { getAuthIcon } from "../lib/graph-utils";
+import { DEFAULT_LOCALE_COLOR, LOCALE_COLORS } from "../lib/constants";
 import { GraphLink, GraphNode, LocaleStats } from "../types/graph";
 
 interface GraphLegendsProps {
@@ -46,7 +40,7 @@ export const GraphLegends: React.FC<GraphLegendsProps> = ({
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center">
             <Info className="w-4 h-4 mr-2 text-primary" />
-            Node Information
+            User Information
           </CardTitle>
           <CardDescription className="text-xs">
             {selectedNodeId
@@ -89,24 +83,6 @@ export const GraphLegends: React.FC<GraphLegendsProps> = ({
                     : "N/A"}
                 </span>
               </p>
-              <div>
-                <strong>Auth Sources:</strong>
-                {selectedNode.authSources.length > 0 ? (
-                  <ul className="list-none pl-0 mt-1 space-y-1">
-                    {selectedNode.authSources.map((src) => (
-                      <li
-                        key={src}
-                        className="flex items-center text-muted-foreground"
-                      >
-                        {getAuthIcon(src)} {/* Use the utility function */}
-                        {src}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="text-muted-foreground ml-1">None</span>
-                )}
-              </div>
             </>
           ) : hoveredNode ? (
             // Display hovered node info (simplified)
@@ -130,12 +106,6 @@ export const GraphLegends: React.FC<GraphLegendsProps> = ({
                     aria-hidden="true"
                   ></span>
                   {hoveredNode.locale}
-                </span>
-              </p>
-              <p>
-                <strong>Auth Sources:</strong>
-                <span className="text-muted-foreground ml-1">
-                  {hoveredNode.authSources.join(", ") || "None"}
                 </span>
               </p>
             </>
@@ -242,48 +212,6 @@ export const GraphLegends: React.FC<GraphLegendsProps> = ({
               </p>
             )}
           </div>
-        </CardContent>
-      </Card>
-      {/* Source Legend Card */}
-      <Card className="shadow-md">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center">
-            <Link2 className="w-4 h-4 mr-2 text-primary" /> Auth Source Legend
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Link colors indicate shared source
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm pt-2">
-          {Object.entries(SOURCE_COLORS).map(([source, color]) => (
-            <div key={source} className="flex items-center space-x-2 truncate">
-              <span
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: color }}
-                aria-hidden="true"
-              ></span>
-              <span
-                className="text-muted-foreground truncate flex items-center"
-                title={source}
-              >
-                {getAuthIcon(source)} {/* Use the utility function */}
-                {source}
-              </span>
-            </div>
-          ))}
-          {/* Add 'Other' entry if the default color is used */}
-          {graphData.links.some((l) => l.color === DEFAULT_SOURCE_COLOR) && (
-            <div className="flex items-center space-x-2 truncate">
-              <span
-                className="w-3 h-3 rounded-full flex-shrink-0 border border-dashed"
-                style={{ backgroundColor: DEFAULT_SOURCE_COLOR }}
-                aria-hidden="true"
-              ></span>
-              <span className="text-muted-foreground truncate" title="Other">
-                Other
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

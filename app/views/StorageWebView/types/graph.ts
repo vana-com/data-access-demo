@@ -19,7 +19,7 @@ export interface GraphNode {
   storage?: number; // Optional storage usage percentage
   color: string; // Color determined by locale
   isFiltered?: boolean; // Flag indicating if node passes current filters
-  authSources: string[]; // List of authentication sources used by the user
+  authSource: string; // Single authentication source used by the user
   x?: number; // X coordinate assigned by force graph engine
   y?: number; // Y coordinate assigned by force graph engine
   localeStats?: LocaleStats; // Statistics about the node's locale group

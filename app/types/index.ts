@@ -1,12 +1,23 @@
 // Types for the models based on the provided schema
 export interface User {
-  user_id: string;
-  name: string;
-  email?: string;
-  locale: string;
-  created_at: string;
+  userId: string;
+  email: string;
+  timestamp: number;
+  profile: {
+    name: string;
+    locale: string;
+  };
+  storage: {
+    percentUsed: number;
+  };
+  metadata: {
+    source: string;
+    collectionDate: string;
+    dataType: string;
+  };
 }
 
+// This interface is kept for backward compatibility but is deprecated
 export interface AuthSource {
   auth_id: number;
   user_id: string;
@@ -50,18 +61,18 @@ export interface LocaleUsageStats {
 }
 
 // Types for UI state
-export type ViewType = 'userProfiles' | 'authStats' | 'storageUsage' | 'socialWeb' | 'storageTribe';
+export type ViewType = "userProfiles" | "storageWeb" | "storageTribe";
 
 // Types for the Vana Query Engine API
 export enum JobStatus {
-  PENDING = 'PENDING',
-  QUEUED = 'QUEUED',
-  RUNNING = 'RUNNING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED',
-  NOT_FOUND = 'NOT_FOUND',
-  NO_RUNS = 'NO_RUNS',
+  PENDING = "PENDING",
+  QUEUED = "QUEUED",
+  RUNNING = "RUNNING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+  NOT_FOUND = "NOT_FOUND",
+  NO_RUNS = "NO_RUNS",
 }
 
 export interface JobCreationRequest {
@@ -106,7 +117,7 @@ export interface ComputeEnvironment {
 }
 
 // Define possible result types for JobResultResponse
-export type JobResultData = User[] | AuthStat[] | StorageUsageData[] | UserActivity[] | ContentUpload[] | LocaleUsageStats[] | null;
+export type JobResultData = User[] | null;
 
 export interface JobResultResponse {
   job_id: number;
@@ -130,4 +141,4 @@ export interface StorageUsageData {
   name: string;
   percent_used: number;
   recorded_at: string;
-} 
+}

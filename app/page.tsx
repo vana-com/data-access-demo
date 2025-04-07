@@ -5,26 +5,20 @@ import { DashboardContainer } from "@/components/ui/dashboard-container";
 import { Separator } from "@/components/ui/separator";
 import { useEffect } from "react";
 import { Navigation } from "./components/Navigation";
-import { mockJobResultsMap } from "./lib/mockData";
 import { useAppStore } from "./store/store";
-import { AuthStatsView } from "./views/AuthStatsView";
-import { SocialWebView } from "./views/SocialWebView/SocialWebView";
-import { StorageTribeView } from "./views/StorageTribeView";
-import { StorageUsageView } from "./views/StorageUsageView";
+import { StorageWebView } from "./views/StorageWebView/StorageWebView";
 import { UserProfilesView } from "./views/UserProfilesView";
 
 export default function Home() {
-  const { currentView, setJobResult } = useAppStore();
+  const { currentView, loadData } = useAppStore();
 
-  // Directly preload mock data to ensure it's available
+  // Preload data for all views
   useEffect(() => {
     console.log("Preloading data for all views");
 
-    // Directly set mock data for all views
-    setJobResult("userProfiles", mockJobResultsMap.userProfiles);
-    setJobResult("authStats", mockJobResultsMap.authStats);
-    setJobResult("storageUsage", mockJobResultsMap.storageUsage);
-  }, []);
+    // Load data for main views
+    loadData("userProfiles");
+  }, [loadData]);
 
   // Render the current view based on the state
   const renderCurrentView = () => {
@@ -33,14 +27,8 @@ export default function Home() {
     switch (currentView) {
       case "userProfiles":
         return <UserProfilesView />;
-      case "authStats":
-        return <AuthStatsView />;
-      case "storageUsage":
-        return <StorageUsageView />;
-      case "storageTribe":
-        return <StorageTribeView />;
-      case "socialWeb":
-        return <SocialWebView />;
+      case "storageWeb":
+        return <StorageWebView />;
       default:
         return <UserProfilesView />;
     }

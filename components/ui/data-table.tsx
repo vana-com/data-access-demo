@@ -48,7 +48,12 @@ export function DataTable<T>({
   };
 
   return (
-    <Card className={cn("w-full overflow-hidden border border-border/60 shadow-sm", className)}>
+    <Card
+      className={cn(
+        "w-full overflow-hidden border border-border/60 shadow-sm",
+        className
+      )}
+    >
       {(title || searchable) && (
         <CardHeader className="px-6 py-5 bg-muted/10">
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -80,7 +85,10 @@ export function DataTable<T>({
                 {columns.map((column) => (
                   <TableHead
                     key={column.key}
-                    className={cn("whitespace-nowrap font-medium text-foreground/70", column.className)}
+                    className={cn(
+                      "whitespace-nowrap font-medium text-foreground/70",
+                      column.className
+                    )}
                   >
                     {column.header}
                   </TableHead>
@@ -96,9 +104,14 @@ export function DataTable<T>({
                   >
                     {emptyState || (
                       <div className="flex flex-col items-center justify-center py-8">
-                        <p className="text-muted-foreground mb-2">No items found</p>
+                        <p className="text-muted-foreground mb-2">
+                          No items found
+                        </p>
                         {searchQuery && (
-                          <Badge variant="outline" className="mt-2 bg-background">
+                          <Badge
+                            variant="outline"
+                            className="mt-2 bg-background"
+                          >
                             Try adjusting your search
                           </Badge>
                         )}
@@ -114,9 +127,7 @@ export function DataTable<T>({
                         key={`${i}-${column.key}`}
                         className={cn("py-3", column.className)}
                       >
-                        {column.cell
-                          ? column.cell(item)
-                          : (item as any)[column.key]}
+                        {column.cell ? column.cell(item) : item[column.key]}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -128,4 +139,4 @@ export function DataTable<T>({
       </CardContent>
     </Card>
   );
-} 
+}

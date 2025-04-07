@@ -2,7 +2,6 @@ import { useAppStore } from "@/app/store/store";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_LOCALE_COLOR, LOCALE_COLORS } from "../lib/constants";
 import { GraphLink, GraphNode } from "../types/graph";
-import { AuthSource } from "@/app/types";
 
 // Interface for locale statistics
 interface LocaleStats {
@@ -26,11 +25,7 @@ export const useGraphData = (
   searchQuery: string,
   selectedNodeId: string | null
 ) => {
-  const { userProfiles, authStats, storageUsage, fetchData, isLoading, error } =
-    useAppStore();
-
-  // Local state for auth sources (since we don't have it directly in the store)
-  const [authSources, setAuthSources] = useState<AuthSource[]>([]);
+  const { userProfiles, loadData, isLoading, error } = useAppStore();
 
   // State for the processed graph data
   const [graphData, setGraphData] = useState<{
@@ -55,90 +50,34 @@ export const useGraphData = (
   useEffect(() => {
     if (!userProfiles && !isLoading) {
       console.log("useGraphData: Fetching userProfiles");
-      fetchData("userProfiles");
+      loadData("userProfiles");
     }
-    if (!authStats && !isLoading) {
-      console.log("useGraphData: Fetching authStats");
-      fetchData("authStats");
-    }
-    if (!storageUsage && !isLoading) {
-      console.log("useGraphData: Fetching storageUsage");
-      fetchData("storageUsage");
-    }
-  }, [userProfiles, authStats, storageUsage, fetchData, isLoading]);
+  }, [userProfiles, loadData, isLoading]);
 
-  // Fetch auth_sources data (this would come from the store in a real app)
-  useEffect(() => {
-    // In a real implementation, you would fetch this from an API or include in the store
-    // We'll simulate it here based on authStats for now
-    if (!authStats) return;
-
-    // Generate synthetic auth source data based on stats
-    // This is a workaround since we don't have real user-to-source mappings
-    const synthAuthSources: AuthSource[] = [];
-
-    // Only proceed if we have users and auth stats
-    if (userProfiles && authStats) {
-      // For each auth source type
-      authStats.forEach((stat) => {
-        // Calculate how many users should have this source
-        const countForThisSource = stat.count;
-        // For simplicity, we'll assign sources to users sequentially
-        // In a real app, you'd get the actual user-source relationships from the API
-        const usersWithThisSource = userProfiles.slice(0, countForThisSource);
-
-        usersWithThisSource.forEach((user, index) => {
-          synthAuthSources.push({
-            auth_id: index + 1000 * (authStats.indexOf(stat) + 1), // Generate a unique ID
-            user_id: user.user_id,
-            source: stat.source,
-            collection_date: new Date().toISOString(),
-            data_type: "auth",
-          });
-        });
-      });
-    }
-
-    setAuthSources(synthAuthSources);
-  }, [userProfiles, authStats]);
-
-  // Memoize base data processing (users, auth sources, storage)
+  // Memoize base data processing
   const users = useMemo(() => {
     // Use store data, no mock fallbacks
     return userProfiles || [];
   }, [userProfiles]);
 
-  // Use auth sources from our local state
-  const authSourcesData = useMemo(() => {
-    return authSources;
-  }, [authSources]);
-
-  const storageMetricsData = useMemo(() => {
-    const metrics = storageUsage || [];
-    const userMap = new Map(users.map((u) => [u.user_id, u]));
-    return metrics.map((metric) => ({
-      user_id: metric.user_id,
-      name: userMap.get(metric.user_id)?.name || "Unknown User",
-      percent_used: metric.percent_used,
-      recorded_at: metric.recorded_at,
-    }));
-  }, [storageUsage, users]);
+  // Memoize unique auth sources directly from users
+  const uniqueAuthSources = useMemo(() => {
+    if (!users.length) return [];
+    return Array.from(
+      new Set(users.map(user => user.metadata.source).filter(Boolean))
+    ).sort() as string[];
+  }, [users]);
 
   // Calculate statistics by locale (average storage usage, etc.)
   useEffect(() => {
-    if (users.length === 0 || storageMetricsData.length === 0) return;
-
-    // Create a map of user_id to storage percent
-    const storageMap = new Map(
-      storageMetricsData.map((s) => [s.user_id, s.percent_used])
-    );
+    if (users.length === 0) return;
 
     // Group users by locale and calculate stats
     const localeStatsMap: Record<string, LocaleStats> = {};
 
     users.forEach((user) => {
-      const locale = user.locale;
-      const storagePercent = storageMap.get(user.user_id) || 0;
+      const locale = user.profile.locale;
+      const storagePercent = user.storage.percentUsed || 0;
 
       // Initialize locale stats if not already done
       if (!localeStatsMap[locale]) {
@@ -162,29 +101,22 @@ export const useGraphData = (
 
     setLocaleStats(localeStatsMap);
     console.log("Locale statistics calculated:", localeStatsMap);
-  }, [users, storageMetricsData]);
+  }, [users]);
 
   // Memoize unique filter options
   const uniqueLocales = useMemo(
     () =>
-      Array.from(new Set(users.map((user) => user.locale))).sort() as string[],
+      Array.from(new Set(users.map((user) => user.profile.locale))).sort() as string[],
     [users]
   );
 
-  const uniqueSources = useMemo(
-    () =>
-      Array.from(
-        new Set(authSourcesData.map((auth) => auth.source))
-      ).sort() as string[],
-    [authSourcesData]
-  );
+  const uniqueSources = uniqueAuthSources;
 
   // Effect to build and filter graph data whenever DATA or FILTERS change
-  // Important: This effect does NOT depend on selectedNodeId to avoid unnecessary rebuilds
   useEffect(() => {
     console.log("useGraphData: Rebuilding graph data...");
 
-    if (users.length === 0 || authSourcesData.length === 0) {
+    if (users.length === 0) {
       console.log("useGraphData: Insufficient data, setting empty graph.");
       setGraphData({ nodes: [], links: [] });
       setNeighborNodeIds(new Set());
@@ -193,30 +125,18 @@ export const useGraphData = (
     }
 
     // --- 1. Create Base Nodes ---
-    const userStorageMap = new Map(
-      storageMetricsData.map((s) => [s.user_id, s.percent_used])
-    );
-    const userAuthSourcesMap = new Map<string, string[]>();
-    authSourcesData.forEach((auth) => {
-      if (!userAuthSourcesMap.has(auth.user_id)) {
-        userAuthSourcesMap.set(auth.user_id, []);
-      }
-      userAuthSourcesMap.get(auth.user_id)?.push(auth.source);
-    });
-
-    // Add locale statistics to node data
     const baseNodes: GraphNode[] = users.map((user) => {
-      const userLocale = user.locale;
+      const userLocale = user.profile.locale;
       const localeAvgStorage = localeStats[userLocale]?.averageStorage || 0;
       const localeUserCount = localeStats[userLocale]?.userCount || 0;
 
       return {
-        id: user.user_id,
-        name: user.name,
+        id: user.userId,
+        name: user.profile.name,
         locale: userLocale,
-        storage: userStorageMap.get(user.user_id),
+        storage: user.storage.percentUsed,
         color: LOCALE_COLORS[userLocale] || DEFAULT_LOCALE_COLOR,
-        authSources: userAuthSourcesMap.get(user.user_id) || [],
+        authSource: user.metadata.source || "Unknown",
         localeStats: {
           averageStorage: localeAvgStorage,
           userCount: localeUserCount,
@@ -230,11 +150,11 @@ export const useGraphData = (
 
     // Group users by locale
     users.forEach((user) => {
-      const locale = user.locale;
+      const locale = user.profile.locale;
       if (!usersByLocale[locale]) {
         usersByLocale[locale] = [];
       }
-      usersByLocale[locale].push(user.user_id);
+      usersByLocale[locale].push(user.userId);
     });
 
     const baseLinks: GraphLink[] = [];
@@ -292,18 +212,11 @@ export const useGraphData = (
       );
     }
 
-    // Source Filter - still useful for filtering by auth source
+    // Source Filter - filter by the single auth source
     if (filteredSource) {
-      // Instead of filtering links, filter nodes with this auth source
-      const nodesWithSource = new Set(
-        authSourcesData
-          .filter((auth) => auth.source === filteredSource)
-          .map((auth) => auth.user_id)
-      );
-
       filteredNodes = filteredNodes.filter(
         (node) =>
-          nodesWithSource.has(node.id) ||
+          node.authSource === filteredSource ||
           (filteredLocale && node.locale === filteredLocale)
       );
 
@@ -341,8 +254,7 @@ export const useGraphData = (
     setGraphData({ nodes: filteredNodes, links: filteredLinks });
   }, [
     users, // Base user data
-    authSourcesData, // Base auth source data
-    storageMetricsData, // Base storage data
+    uniqueSources, // Base auth source data
     filteredLocale, // Filter criteria
     filteredSource, // Filter criteria
     searchQuery, // Filter criteria
@@ -402,7 +314,7 @@ export const useGraphData = (
 
   return {
     graphData,
-    isLoading: isLoading && (!userProfiles || !authStats || !storageUsage), // More accurate loading state
+    isLoading: isLoading && !userProfiles, // More accurate loading state
     error,
     uniqueLocales,
     uniqueSources,

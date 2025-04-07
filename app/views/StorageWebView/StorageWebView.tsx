@@ -19,43 +19,25 @@ import { useGraphData } from "./hooks/useGraphData";
 import { useGraphInteractions } from "./hooks/useGraphInteractions";
 import { useGraphRendering } from "./hooks/useGraphRendering";
 import { GraphCanvas } from "./components/GraphCanvas";
-import { SocialWebHeader } from "./components/SocialWebHeader";
+import { StorageWebHeader } from "./components/StorageWebHeader";
 import { GraphLegends } from "./components/GraphLegends";
 import { GraphNode } from "./types/graph"; // Import base type if needed
 import { useAppStore } from "@/app/store/store";
 
 // Main Refactored Component
-export const SocialWebView: React.FC = () => {
+export const StorageWebView: React.FC = () => {
   // Get store data and fetch function
-  const {
-    fetchData,
-    userProfiles,
-    authStats,
-    storageUsage,
-    isLoading: storeLoading,
-  } = useAppStore();
+  const { loadData, userProfiles, isLoading: storeLoading } = useAppStore();
 
   // Fetch data when the component mounts if not already loaded
   useEffect(() => {
     // Create a simple function to safely fetch data based on current state
     const loadInitialData = async () => {
       try {
-        // Load profiles first if needed
+        // Load profiles if needed
         if (!userProfiles) {
           console.log("Loading user profiles...");
-          await fetchData("userProfiles");
-        }
-
-        // Using a separate condition to avoid dependency issues
-        if (!authStats) {
-          console.log("Loading auth stats...");
-          await fetchData("authStats");
-        }
-
-        // Load storage data if needed
-        if (!storageUsage) {
-          console.log("Loading storage usage...");
-          await fetchData("storageUsage");
+          loadData("userProfiles");
         }
       } catch (error) {
         console.error("Error loading initial data:", error);
@@ -63,10 +45,10 @@ export const SocialWebView: React.FC = () => {
     };
 
     // Only trigger loading if we're not already loading and need data
-    if (!storeLoading && (!userProfiles || !authStats || !storageUsage)) {
+    if (!storeLoading && !userProfiles) {
       loadInitialData();
     }
-  }, [fetchData, userProfiles, authStats, storageUsage, storeLoading]);
+  }, [loadData, userProfiles, storeLoading]);
 
   // Ref for accessing ForceGraph methods (e.g., zoom, center)
   const graphRef = useRef<ForceGraphMethods<NodeObject<GraphNode>>>(null);
@@ -135,7 +117,7 @@ export const SocialWebView: React.FC = () => {
       <div className="flex items-center justify-center h-screen w-full bg-background">
         <div className="text-center space-y-4">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">Loading social web data...</p>
+          <p className="text-muted-foreground">Loading storage web data...</p>
         </div>
       </div>
     );
@@ -171,7 +153,7 @@ export const SocialWebView: React.FC = () => {
                 Oops! Something went wrong.
               </h5>
               <p className="text-sm text-destructive/80 mt-1 mb-4">
-                We couldn&apos;t load the social web data. Please check your
+                We couldn&apos;t load the storage web data. Please check your
                 connection or try again.
               </p>
               {/* Display error details */}
@@ -182,9 +164,7 @@ export const SocialWebView: React.FC = () => {
               {/* Retry Button - Implement retry logic with store */}
               <Button
                 onClick={() => {
-                  fetchData("userProfiles");
-                  fetchData("authStats");
-                  fetchData("storageUsage");
+                  loadData("userProfiles");
                 }}
                 variant="destructive"
                 size="sm"
@@ -205,7 +185,7 @@ export const SocialWebView: React.FC = () => {
     // Main layout container
     <div className="flex flex-col h-screen bg-gradient-to-br from-background to-muted/30 text-foreground overflow-hidden">
       {/* Header Component */}
-      <SocialWebHeader
+      <StorageWebHeader
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         connectionMode={connectionMode}
@@ -238,12 +218,12 @@ export const SocialWebView: React.FC = () => {
             <CardDescription className="text-xs">
               {selectedNodeId
                 ? `Showing connections for ${
-                    users.find((u) => u.user_id === selectedNodeId)?.name ||
-                    selectedNodeId
+                    users.find((u) => u.userId === selectedNodeId)?.profile
+                      .name || selectedNodeId
                   }`
                 : filteredLocale || filteredSource || searchQuery
                 ? "Filtered network view"
-                : "Explore connections based on shared login sources."}
+                : "Explore connections based on user locations."}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0 h-[calc(100%-64px)] relative">
@@ -296,9 +276,9 @@ export const SocialWebView: React.FC = () => {
                 </h3>
                 <p className="text-muted-foreground text-xs">
                   {`${
-                    users.find((u) => u.user_id === selectedNodeId)?.name ||
-                    "This user"
-                  } is connected to others via shared login sources.`}
+                    users.find((u) => u.userId === selectedNodeId)?.profile
+                      .name || "This user"
+                  } is connected to others via shared locations.`}
                   Hover over links for details.
                 </p>
               </div>
@@ -322,4 +302,4 @@ export const SocialWebView: React.FC = () => {
 };
 
 // Export the main component
-export default SocialWebView;
+export default StorageWebView;

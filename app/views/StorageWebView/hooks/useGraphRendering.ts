@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import {
-  ForceGraphNodeObject,
+  DEFAULT_LOCALE_COLOR,
+  DEFAULT_SOURCE_COLOR,
+  SOURCE_COLORS,
+} from "../lib/constants";
+import {
   ForceGraphLinkObject,
+  ForceGraphNodeObject,
   GraphLink,
 } from "../types/graph";
-import {
-  DEFAULT_LOCALE_COLOR,
-  SOURCE_COLORS,
-  DEFAULT_SOURCE_COLOR,
-} from "../lib/constants";
 
 /**
  * Custom hook providing memoized canvas painting functions for nodes and links.
@@ -323,7 +323,7 @@ export const useGraphRendering = (
         }
       }
     },
-    [selectedNodeId, neighborNodeIds, neighborLinkIds, connectionMode] // Dependencies
+    [selectedNodeId, neighborLinkIds, connectionMode] // Dependencies
   );
 
   return { nodePaint, linkPaint };

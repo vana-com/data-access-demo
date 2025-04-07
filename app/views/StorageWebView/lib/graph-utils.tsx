@@ -94,7 +94,7 @@ export const getAuthIcon = (source: string): React.ReactElement => {
  */
 export const generateConnectionExplanation = (
   link: GraphLink,
-  users: { user_id: string; name: string }[]
+  users: { userId: string; profile: { name: string } }[]
 ): string => {
   // Handle both string IDs and node objects for source/target
   const sourceId =
@@ -102,11 +102,11 @@ export const generateConnectionExplanation = (
   const targetId =
     typeof link.target === "string" ? link.target : link.target.id;
 
-  const sourceUser = users.find((u) => u.user_id === sourceId);
-  const targetUser = users.find((u) => u.user_id === targetId);
+  const sourceUser = users.find((u) => u.userId === sourceId);
+  const targetUser = users.find((u) => u.userId === targetId);
 
-  const sourceName = sourceUser?.name || `User ${sourceId.substring(0, 6)}`;
-  const targetName = targetUser?.name || `User ${targetId.substring(0, 6)}`;
+  const sourceName = sourceUser?.profile.name || `User ${sourceId.substring(0, 6)}`;
+  const targetName = targetUser?.profile.name || `User ${targetId.substring(0, 6)}`;
 
   let explanation = `${sourceName} and ${targetName} are connected via ${link.source_type}`;
 

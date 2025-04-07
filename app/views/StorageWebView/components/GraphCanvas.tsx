@@ -30,7 +30,7 @@ const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10">
       <Users className="w-10 h-10 animate-pulse text-primary mb-4" />
       <p className="text-lg font-medium text-muted-foreground">
-        Building social web...
+        Building storage web...
       </p>
       <p className="text-sm text-muted-foreground">
         Please wait while we connect the dots.
@@ -57,7 +57,7 @@ interface GraphCanvasProps {
   onBackgroundClick: () => void;
   selectedNodeId: string | null;
   neighborLinkIds: Set<GraphLink>;
-  users: { user_id: string; name: string }[]; // Needed for link labels
+  users: { userId: string; profile: { name: string } }[]; // Updated to match new User structure
   isLoading?: boolean; // Optional loading state indicator
 }
 

@@ -1,4 +1,4 @@
-// app/components/SocialWebHeader.tsx
+// app/components/StorageWebHeader.tsx
 "use client";
 
 import React from "react";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Search, X, Globe, Link2, Users, RotateCcw } from "lucide-react";
 
-interface SocialWebHeaderProps {
+interface StorageWebHeaderProps {
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   connectionMode: string;
@@ -27,7 +27,7 @@ interface SocialWebHeaderProps {
   onClearFilters: () => void;
 }
 
-export const SocialWebHeader: React.FC<SocialWebHeaderProps> = ({
+export const StorageWebHeader: React.FC<StorageWebHeaderProps> = ({
   searchQuery,
   onSearchQueryChange,
   connectionMode,
@@ -48,7 +48,7 @@ export const SocialWebHeader: React.FC<SocialWebHeaderProps> = ({
         {/* Title */}
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center whitespace-nowrap">
           <Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-primary flex-shrink-0" />
-          Vana Social Web
+          Storage Web
         </h1>
 
         {/* Controls */}

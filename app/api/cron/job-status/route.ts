@@ -26,7 +26,7 @@ const CONTRACT_MAX_TIMEOUT_SECONDS = 100; // Max job duration on contract
 const CONTRACT_GPU_REQUIRED = false; // GPU requirement for contract job
 const API_TIMEOUT_MS = 15000; // Unified timeout for all API calls (15 seconds)
 const POLLING_INTERVAL_MS = 10000; // Interval between status checks (10 seconds)
-const MAX_POLLING_ATTEMPTS = 15; // Max number of status check attempts
+const MAX_POLLING_ATTEMPTS = 50; // Max number of status check attempts
 
 const SQL_QUERY = `
 SELECT

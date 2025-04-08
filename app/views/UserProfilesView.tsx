@@ -21,7 +21,7 @@ export const UserProfilesView: React.FC = () => {
   useEffect(() => {
     if (!userProfiles && !isLoading) {
       console.log("UserProfilesView: No data found, fetching");
-      loadData("userProfiles");
+      loadData();
     } else {
       console.log(
         "UserProfilesView: Data already loaded or loading in progress"
@@ -59,7 +59,7 @@ export const UserProfilesView: React.FC = () => {
       <Card className="p-4 text-center">
         <p className="text-red-500">Error: {error}</p>
         <button
-          onClick={() => loadData("userProfiles")}
+          onClick={() => loadData()}
           className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover transition-colors"
         >
           Retry

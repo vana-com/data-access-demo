@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { ViewType, User } from "../types";
-import userData from "../../export/social-stats.json";
 
 // Define the store's state and actions
 interface AppState {
@@ -12,8 +11,8 @@ interface AppState {
   setCurrentView: (view: ViewType) => void;
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  loadData: (view: ViewType) => void;
-  clearData: (view: ViewType) => void;
+  loadData: () => Promise<void>;
+  clearData: () => void;
   clearAllData: () => void;
 }
 
@@ -31,19 +30,20 @@ export const useAppStore = create<AppState>((set) => ({
   setError: (error) => set({ error }),
 
   // --- Data Loading ---
-  loadData: (view) => {
+  loadData: async () => {
     set({ isLoading: true, error: null });
 
     try {
       const dataUpdate: Partial<AppState> = {};
 
-      if (view === "userProfiles") {
-        // Get users from the simplified JSON structure
-        dataUpdate.userProfiles = userData as User[];
-      } else {
-        // Handle unknown view type
-        console.warn("Attempted to load data for unknown view:", view);
+      // Fetch data from our API endpoint that handles Vercel Blob retrieval
+      const response = await fetch("/api/social-stats");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
       }
+
+      const userData = await response.json();
+      dataUpdate.userProfiles = userData as User[];
 
       set({ ...dataUpdate, isLoading: false });
     } catch (err) {
@@ -51,20 +51,15 @@ export const useAppStore = create<AppState>((set) => ({
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred";
       set({
-        error: `Failed to load ${view}: ${errorMessage}`,
+        error: `Failed to load data: ${errorMessage}`,
         isLoading: false,
       });
     }
   },
 
   // --- Data Clearing ---
-  clearData: (view) => {
-    if (view === "userProfiles") {
-      set({ userProfiles: null });
-    } else {
-      // Handle unknown view type
-      console.warn("Attempted to clear data for unknown view:", view);
-    }
+  clearData: () => {
+    set({ userProfiles: null });
   },
 
   clearAllData: () =>

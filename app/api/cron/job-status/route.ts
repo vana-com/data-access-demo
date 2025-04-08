@@ -7,9 +7,8 @@ import {
   JsonRpcProvider,
   LogDescription,
 } from "ethers";
-import fs from "fs";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
-import path from "path";
 
 // --- Configuration ---
 // Essential environment variables
@@ -508,7 +507,11 @@ const transformToUserFormat = (rawData: unknown[]): User[] => {
 };
 
 // --- Main API Route Handler (Cron Job Entry Point) ---
-export async function GET() {
+export async function GET(req: Request) {
+  if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   console.log("Cron job started: Submitting and monitoring compute job...");
   let jobId: number | undefined;
 
@@ -571,18 +574,14 @@ export async function GET() {
             ? transformToUserFormat(artifactData)
             : [];
 
-          // Save the transformed data to social-stats.json
-          const outputPath = path.join(
-            process.cwd(),
-            "export",
-            "social-stats.json"
-          );
-
-          fs.writeFileSync(
-            outputPath,
-            JSON.stringify(transformedData, null, 2)
-          );
-          console.log(`Saved transformed artifact data to ${outputPath}`);
+          // Save the transformed data to Vercel Blob
+          const { url } = await put('social-stats.json', JSON.stringify(transformedData, null, 2), { 
+            access: 'public',
+            addRandomSuffix: false // Use consistent name for easier retrieval
+          });
+          
+          console.log(`Saved transformed artifact data to Vercel Blob at: ${url}`);
+          console.log(`IMPORTANT: Add this URL to your .env.local as NEXT_PUBLIC_SOCIAL_STATS_BLOB_URL=${url}`);
 
           // Return success with status and artifact data
           return NextResponse.json({
@@ -590,6 +589,7 @@ export async function GET() {
             jobId,
             statusResult: finalStatusResult,
             artifactData: transformedData,
+            blobUrl: url
           });
         } catch (artifactError) {
           console.error(

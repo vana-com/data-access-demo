@@ -12,12 +12,8 @@ import { UserProfilesView } from "./views/UserProfilesView";
 export default function Home() {
   const { currentView, loadData } = useAppStore();
 
-  // Preload data for all views
   useEffect(() => {
-    console.log("Preloading data for all views");
-
-    // Load data for main views
-    loadData("userProfiles");
+    loadData();
   }, [loadData]);
 
   // Render the current view based on the state

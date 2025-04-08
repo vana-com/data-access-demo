@@ -26,7 +26,7 @@ export const Navigation: React.FC = () => {
   const handleViewChange = (view: ViewType) => {
     if (isLoading) return;
     setCurrentView(view);
-    loadData(view);
+    loadData();
   };
 
   return (

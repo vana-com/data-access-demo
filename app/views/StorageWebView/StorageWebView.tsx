@@ -37,7 +37,7 @@ export const StorageWebView: React.FC = () => {
         // Load profiles if needed
         if (!userProfiles) {
           console.log("Loading user profiles...");
-          loadData("userProfiles");
+          loadData();
         }
       } catch (error) {
         console.error("Error loading initial data:", error);
@@ -164,7 +164,7 @@ export const StorageWebView: React.FC = () => {
               {/* Retry Button - Implement retry logic with store */}
               <Button
                 onClick={() => {
-                  loadData("userProfiles");
+                  loadData();
                 }}
                 variant="destructive"
                 size="sm"

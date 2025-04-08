@@ -50,7 +50,7 @@ export const useGraphData = (
   useEffect(() => {
     if (!userProfiles && !isLoading) {
       console.log("useGraphData: Fetching userProfiles");
-      loadData("userProfiles");
+      loadData();
     }
   }, [userProfiles, loadData, isLoading]);
 

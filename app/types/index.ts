@@ -61,7 +61,7 @@ export interface LocaleUsageStats {
 }
 
 // Types for UI state
-export type ViewType = "userProfiles" | "storageWeb" | "storageTribe";
+export type ViewType = "userProfiles" | "storageWeb";
 
 // Types for the Vana Query Engine API
 export enum JobStatus {

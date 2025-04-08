@@ -517,7 +517,7 @@ export async function GET() {
     jobId = await submitJobToContract();
     console.log(`Blockchain job submission successful. Job ID: ${jobId}`);
 
-    // === Step 2: Submit job details to the API server ===
+    // === Step 2: Submit job details to the ===
     const apiSubmissionResult = await submitJobToApi(jobId);
     // Optional: Check apiSubmissionResult if needed, e.g., for initial status or run_id
     console.log(

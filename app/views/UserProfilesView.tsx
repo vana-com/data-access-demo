@@ -167,16 +167,6 @@ export const UserProfilesView: React.FC = () => {
           </Card>
         ))}
       </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={() => loadData("userProfiles")}
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover transition-colors"
-          disabled={isLoading}
-        >
-          Refresh Data
-        </button>
-      </div>
     </div>
   );
 };

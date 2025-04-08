@@ -15,10 +15,10 @@ import { NextResponse } from "next/server";
 const PRIVATE_KEY = process.env.APP_WALLET_PRIVATE_KEY;
 const RPC_URL = process.env.RPC_URL || "https://rpc.moksha.vana.org";
 const APP_API_SERVER_URL =
-  process.env.APP_API_SERVER_URL || "http://34.56.88.201";
+  process.env.APP_API_SERVER_URL || "https://70a8a7002c9df9e4f5f639df8d7339107fe5a13c-8000.dstack-prod5.phala.network";
 const COMPUTE_ENGINE_ADDRESS =
   process.env.COMPUTE_ENGINE_ADDRESS ||
-  "0x959C44c02c5ac8e3066319102b2Fc2412E15B6a8";
+  "0xb2BFe33FA420c45F1Cf1287542ad81ae935447bd";
 
 const COMPUTE_INSTRUCTION_ID = process.env.COMPUTE_INSTRUCTION_ID || 15;
 const JOB_FUNDING_AMOUNT_ETH = "0.001"; // Funding amount in Ether

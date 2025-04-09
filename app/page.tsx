@@ -49,7 +49,7 @@ export default function Home() {
               Powered by Vana Query Engine
             </p>
             <p className="text-xs text-muted-foreground/60">
-              Social Insights Demo — {new Date().getFullYear()}
+              Data Access Demo — {new Date().getFullYear()}
             </p>
           </div>
         </div>

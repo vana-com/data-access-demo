@@ -261,7 +261,6 @@ export const useGraphData = (
     filteredSource, // Filter criteria
     searchQuery, // Filter criteria
     localeStats, // Added dependency for locale statistics
-    // selectedNodeId removed from dependencies to avoid rebuilds when selecting nodes
   ]);
 
   // Separate effect to calculate neighbors when selectedNode changes
@@ -309,14 +308,13 @@ export const useGraphData = (
       }
     });
 
-    // Update neighbor sets
     setNeighborNodeIds(newNeighborNodeIds);
     setNeighborLinkIds(newNeighborLinkIds);
   }, [selectedNodeId, graphData]);
 
   return {
     graphData,
-    isLoading: isLoading && !userProfiles, // More accurate loading state
+    isLoading: isLoading && !userProfiles,
     error,
     uniqueLocales,
     uniqueSources,

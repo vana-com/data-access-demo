@@ -1,4 +1,4 @@
-import { getAbi } from "@/contracts/abi"; // Assuming getAbi is correctly defined elsewhere
+import { getAbi } from "@/contracts/abi";
 import axios, { AxiosError } from "axios";
 import {
   ethers,
@@ -78,7 +78,6 @@ interface JobStatusResponse {
   artifacts?: Artifact[];
 }
 
-// Define User interface that matches the expected output
 interface User {
   userId: string;
   email: string;

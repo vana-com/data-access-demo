@@ -1,7 +1,15 @@
 import React, { useEffect } from "react";
-import { Card } from "../components/ui/Card";
-import { LoadingOverlay } from "../components/ui/Spinner";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { useAppStore } from "../store/store";
+
+// Simple LoadingOverlay component
+const LoadingOverlay = ({ message = "Loading user profiles..." }) => (
+  <Card className="p-4 text-center flex flex-col items-center justify-center h-64">
+    <Spinner size="lg" />
+    <p className="text-muted-foreground mt-4">{message}</p>
+  </Card>
+);
 
 // Helper function to get color based on percentage
 const getColorForPercentage = (percent: number): string => {
@@ -51,7 +59,7 @@ export const UserProfilesView: React.FC = () => {
   });
 
   if (isLoading) {
-    return <LoadingOverlay message="Loading user profiles..." />;
+    return <LoadingOverlay />;
   }
 
   if (error) {

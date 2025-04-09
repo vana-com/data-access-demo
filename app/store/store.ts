@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { ViewType, User } from "../types";
+import { ViewType, User } from "./types";
 
 // Define the store's state and actions
 interface AppState {
@@ -9,11 +9,7 @@ interface AppState {
   userProfiles: User[] | null;
 
   setCurrentView: (view: ViewType) => void;
-  setIsLoading: (isLoading: boolean) => void;
-  setError: (error: string | null) => void;
   loadData: () => Promise<void>;
-  clearData: () => void;
-  clearAllData: () => void;
 }
 
 // Create the Zustand store
@@ -26,8 +22,6 @@ export const useAppStore = create<AppState>((set) => ({
 
   // --- Simple Setters ---
   setCurrentView: (view) => set({ currentView: view, error: null }), // Clear error when view changes
-  setIsLoading: (isLoading) => set({ isLoading }),
-  setError: (error) => set({ error }),
 
   // --- Data Loading ---
   loadData: async () => {
@@ -56,15 +50,4 @@ export const useAppStore = create<AppState>((set) => ({
       });
     }
   },
-
-  // --- Data Clearing ---
-  clearData: () => {
-    set({ userProfiles: null });
-  },
-
-  clearAllData: () =>
-    set({
-      userProfiles: null,
-      error: null, // Also clear errors
-    }),
 }));

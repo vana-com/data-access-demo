@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ViewType } from "../types";
+import { ViewType } from "../store/types";
 import { useAppStore } from "../store/store";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Spinner } from "@/components/ui/spinner";

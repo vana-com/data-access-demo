@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vana Social Insights",
+  title: "Data Access Demo",
   description: "Explore user data powered by Vana Query Engine",
 };
 

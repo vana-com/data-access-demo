@@ -15,18 +15,22 @@ import { NextResponse } from "next/server";
 const PRIVATE_KEY = process.env.APP_WALLET_PRIVATE_KEY;
 const RPC_URL = process.env.RPC_URL || "https://rpc.moksha.vana.org";
 const APP_API_SERVER_URL =
-  process.env.APP_API_SERVER_URL || "https://70a8a7002c9df9e4f5f639df8d7339107fe5a13c-8000.dstack-prod5.phala.network";
+  process.env.APP_API_SERVER_URL ||
+  "https://70a8a7002c9df9e4f5f639df8d7339107fe5a13c-8000.dstack-prod5.phala.network";
 const COMPUTE_ENGINE_ADDRESS =
   process.env.COMPUTE_ENGINE_ADDRESS ||
   "0xb2BFe33FA420c45F1Cf1287542ad81ae935447bd";
 
-const COMPUTE_INSTRUCTION_ID = process.env.COMPUTE_INSTRUCTION_ID || 15;
+const COMPUTE_INSTRUCTION_ID = process.env.COMPUTE_INSTRUCTION_ID || 2;
 const JOB_FUNDING_AMOUNT_ETH = "0.001"; // Funding amount in Ether
 const CONTRACT_MAX_TIMEOUT_SECONDS = 100; // Max job duration on contract
 const CONTRACT_GPU_REQUIRED = false; // GPU requirement for contract job
 const API_TIMEOUT_MS = 15000; // Unified timeout for all API calls (15 seconds)
 const POLLING_INTERVAL_MS = 10000; // Interval between status checks (10 seconds)
 const MAX_POLLING_ATTEMPTS = 50; // Max number of status check attempts
+const REFINER_ID = process.env.REFINER_ID
+  ? parseInt(process.env.REFINER_ID)
+  : 1;
 
 const SQL_QUERY = `
 SELECT
@@ -41,11 +45,8 @@ SELECT
   a.data_type AS dataType
 FROM users u
 LEFT JOIN auth_sources a ON u.user_id = a.user_id
-LEFT JOIN storage_metrics sm ON u.user_id = sm.user_id;
+LEFT JOIN storage_metrics sm ON u.user_id = sm.user_id
 `;
-const REFINER_ID = process.env.REFINER_ID
-  ? parseInt(process.env.REFINER_ID)
-  : 4;
 
 // --- Constants ---
 const COMPLETED_JOB_STATUSES = new Set([
@@ -96,14 +97,10 @@ interface User {
   };
 }
 
-// Type guard for LogDescription with specific args structure
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JobRegisteredEvent = LogDescription & { args: [bigint, ...any[]] };
-
 function isJobRegisteredEvent(
   event: LogDescription | null | undefined
-): event is JobRegisteredEvent {
-  return event?.name === "JobRegistered" && typeof event.args?.[0] === "bigint";
+): event is LogDescription & { name: "JobRegistered" } {
+  return event?.name === "JobRegistered";
 }
 
 // --- Initialization ---
@@ -177,7 +174,7 @@ const submitJobToContract = async (): Promise<number> => {
     console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
 
     // Find and parse the JobRegistered event
-    let jobRegisteredEvent: JobRegisteredEvent | undefined;
+    let jobRegisteredEvent: LogDescription | undefined;
     if (receipt.logs) {
       for (const log of receipt.logs) {
         // Ensure log has necessary properties before parsing
@@ -508,8 +505,10 @@ const transformToUserFormat = (rawData: unknown[]): User[] => {
 
 // --- Main API Route Handler (Cron Job Entry Point) ---
 export async function GET(req: Request) {
-  if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (
+    req.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`
+  ) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   console.log("Cron job started: Submitting and monitoring compute job...");
@@ -522,7 +521,6 @@ export async function GET(req: Request) {
 
     // === Step 2: Submit job details to the ===
     const apiSubmissionResult = await submitJobToApi(jobId);
-    // Optional: Check apiSubmissionResult if needed, e.g., for initial status or run_id
     console.log(
       `API job submission successful. Run ID: ${
         apiSubmissionResult?.run_id || "N/A"
@@ -532,9 +530,6 @@ export async function GET(req: Request) {
     // === Step 3: Poll for job status ===
     const finalStatusResult = await pollJobStatus(jobId);
 
-    // pollJobStatus now throws if it fails definitively (e.g., 404 or max attempts)
-    // So, if we get here, finalStatusResult should contain the terminal status.
-    // We still check defensively.
     if (!finalStatusResult || !finalStatusResult.status) {
       console.error(
         `Polling finished for job ${jobId} but a valid final status was not determined.`
@@ -575,13 +570,21 @@ export async function GET(req: Request) {
             : [];
 
           // Save the transformed data to Vercel Blob
-          const { url } = await put('social-stats.json', JSON.stringify(transformedData, null, 2), { 
-            access: 'public',
-            addRandomSuffix: false // Use consistent name for easier retrieval
-          });
-          
-          console.log(`Saved transformed artifact data to Vercel Blob at: ${url}`);
-          console.log(`IMPORTANT: Add this URL to your .env.local as NEXT_PUBLIC_SOCIAL_STATS_BLOB_URL=${url}`);
+          const { url } = await put(
+            "social-stats.json",
+            JSON.stringify(transformedData, null, 2),
+            {
+              access: "public",
+              addRandomSuffix: false,
+            }
+          );
+
+          console.log(
+            `Saved transformed artifact data to Vercel Blob at: ${url}`
+          );
+          console.log(
+            `IMPORTANT: Add this URL to your .env.local as NEXT_PUBLIC_SOCIAL_STATS_BLOB_URL=${url}`
+          );
 
           // Return success with status and artifact data
           return NextResponse.json({
@@ -589,7 +592,7 @@ export async function GET(req: Request) {
             jobId,
             statusResult: finalStatusResult,
             artifactData: transformedData,
-            blobUrl: url
+            blobUrl: url,
           });
         } catch (artifactError) {
           console.error(

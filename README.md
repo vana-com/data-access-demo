@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vana Social Demo
+
+This project demonstrates how to build applications that leverage Vana's distributed data layer and secure compute infrastructure. It showcases a practical implementation of querying user data through Vana's secure pipeline using the Compute Engine and Query Engine.
+
+## Overview
+
+This demo application shows how to:
+
+1. Submit jobs to Vana's Compute Engine via blockchain transactions
+2. Execute a SQL query against a Data Layer Provider's (DLP) structured data
+3. Process the results in a secure TEE (Trusted Execution Environment)
+4. Store and display the processed results in a user-friendly dashboard
+
+The application fetches user profile data from a DLP, processes it within Vana's secure compute infrastructure, and displays it in a social insights dashboard.
+
+## Architecture
+
+### Key Components
+
+- **Cron Job (`app/api/cron/job-status/route.ts`)**: Periodically submits and monitors compute jobs to fetch the latest data
+- **React Frontend**: Visualizes the data and provides navigation between different views
+- **Zustand Store**: Manages application state and data fetching
+- **Vercel Blob Storage**: Stores the processed results for efficient retrieval
+
+### Data Flow
+
+1. The cron job submits a transaction to the Compute Engine smart contract
+2. Job details (including the SQL query) are sent to Vana's API server
+3. The job is executed in a secure TEE that can access encrypted DLP data
+4. Results are fetched, processed, and stored in Vercel Blob storage
+5. The frontend retrieves and displays the data
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Set up your environment variables (see below)
+cp .env.example .env.local
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file with the following variables:
+
+```
+APP_WALLET_PRIVATE_KEY=your_private_key
+CRON_SECRET=your_cron_secret
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
+COMPUTE_INSTRUCTION_ID=15
+NEXT_PUBLIC_SOCIAL_STATS_BLOB_URL=your_blob_url
+```
+
+## Adapting for Your Own Application
+
+To use this demo as a starting point for your own application:
+
+1. **Set up your wallet**: Generate a wallet with sufficient funds on the Moksha network
+2. **Modify the SQL query**: Update the query in `app/api/cron/job-status/route.ts` to match your data needs
+3. **Register your compute instruction**: Follow the steps in the Vana documentation to register your compute instruction
+4. **Update your data transformations**: Modify the data processing logic to suit your application
+5. **Customize the UI**: Modify the components in the `app/views` directory
+
+## Key Files to Study
+
+- `app/api/cron/job-status/route.ts`: Contains the complete workflow for submitting and monitoring compute jobs
+- `app/store/store.ts`: Manages application state and data fetching
+- `app/views/`: Contains the visualization components for different data views
+
+## Vana Network Contracts (Moksha Testnet)
+
+- DataRefinerRegistry: `0x93c3EF89369fDcf08Be159D9DeF0F18AB6Be008c`
+- QueryEngine: `0xd25Eb66EA2452cf3238A2eC6C1FD1B7F5B320490`
+- ComputeInstructionRegistry: `0x5786B12b4c6Ba2bFAF0e77Ed30Bf6d32805563A5`
+- ComputeEngine: `0xb2BFe33FA420c45F1Cf1287542ad81ae935447bd`
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+For more details on how to interact with Vana's data infrastructure, check out:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Vana Data Refinement Template](https://github.com/vana-com/vana-data-refinement-template)
+- [Vana Compute Job Template](https://github.com/vana-com/vana-compute-job-template-py/)
+- [Vana Refinement Service](https://github.com/vana-com/vana-refinement-service)

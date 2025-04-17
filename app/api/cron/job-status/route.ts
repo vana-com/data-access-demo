@@ -16,7 +16,7 @@ const PRIVATE_KEY = process.env.APP_WALLET_PRIVATE_KEY;
 const RPC_URL = process.env.RPC_URL || "https://rpc.moksha.vana.org";
 const APP_API_SERVER_URL =
   process.env.APP_API_SERVER_URL ||
-  "https://21618d9c4b70b41849aaf75b8bf49277ad9212db-8000.dstack-prod5.phala.network";
+  "https://21618d9c4b70b41849aaf75b8bf49277ad9212db-80.dstack-prod5.phala.network";
 const COMPUTE_ENGINE_ADDRESS =
   process.env.COMPUTE_ENGINE_ADDRESS ||
   "0xb2BFe33FA420c45F1Cf1287542ad81ae935447bd";

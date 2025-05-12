@@ -21,11 +21,11 @@ const COMPUTE_ENGINE_ADDRESS =
   process.env.COMPUTE_ENGINE_ADDRESS ||
   "0xb2BFe33FA420c45F1Cf1287542ad81ae935447bd";
 
-const COMPUTE_INSTRUCTION_ID = process.env.COMPUTE_INSTRUCTION_ID || 2;
+const COMPUTE_INSTRUCTION_ID = process.env.COMPUTE_INSTRUCTION_ID || 12;
 const JOB_FUNDING_AMOUNT_ETH = "0.001"; // Funding amount in Ether
 const CONTRACT_MAX_TIMEOUT_SECONDS = 100; // Max job duration on contract
 const CONTRACT_GPU_REQUIRED = false; // GPU requirement for contract job
-const API_TIMEOUT_MS = 15000; // Unified timeout for all API calls (15 seconds)
+const API_TIMEOUT_MS = 40000; // Unified timeout for all API calls (15 seconds)
 const POLLING_INTERVAL_MS = 10000; // Interval between status checks (10 seconds)
 const MAX_POLLING_ATTEMPTS = 50; // Max number of status check attempts
 const REFINER_ID = process.env.REFINER_ID
@@ -33,20 +33,20 @@ const REFINER_ID = process.env.REFINER_ID
   : 1;
 
 const SQL_QUERY = `
-SELECT
-  u.user_id AS userId,
-  u.email,
-  CAST(strftime('%s', u.created_at) AS INTEGER) AS timestamp,
-  u.name,
-  u.locale,
-  sm.percent_used AS percentUsed,
-  a.source,
-  a.collection_date AS collectionDate,
-  a.data_type AS dataType
-FROM users u
-LEFT JOIN auth_sources a ON u.user_id = a.user_id
-LEFT JOIN storage_metrics sm ON u.user_id = sm.user_id
-`;
+  SELECT
+    u.user_id AS userId,
+    u.email,
+    CAST(strftime('%s', u.created_at) AS INTEGER) AS timestamp,
+    u.name,
+    u.locale,
+    sm.percent_used AS percentUsed,
+    a.source,
+    a.collection_date AS collectionDate,
+    a.data_type AS dataType
+  FROM users u
+  LEFT JOIN auth_sources a ON u.user_id = a.user_id
+  LEFT JOIN storage_metrics sm ON u.user_id = sm.user_id
+  `;
 
 // --- Constants ---
 const COMPLETED_JOB_STATUSES = new Set([
@@ -153,6 +153,7 @@ const submitJobToContract = async (): Promise<number> => {
   console.log(` - Max Timeout: ${CONTRACT_MAX_TIMEOUT_SECONDS}s`);
   console.log(` - GPU Required: ${CONTRACT_GPU_REQUIRED}`);
   console.log(` - Instruction ID: ${COMPUTE_INSTRUCTION_ID}`);
+  console.log(` - Refiner ID: ${REFINER_ID}`);
 
   try {
     // Submit the job transaction

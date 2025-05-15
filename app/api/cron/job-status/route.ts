@@ -1,19 +1,22 @@
-import { getAbi } from "@/contracts/abi";
-import axios, { AxiosError } from "axios";
-import {
-  ethers,
-  Wallet,
-  Contract,
-  JsonRpcProvider,
-  LogDescription,
-} from "ethers";
 import { put } from "@vercel/blob";
+import axios, { AxiosError } from "axios";
 import { NextResponse } from "next/server";
+import { chains } from "vana-sdk";
+import { getAbi } from "vana-sdk/dist/abi";
+import {
+  createWalletClient,
+  http,
+  parseEther,
+  parseEventLogs,
+  publicActions,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
 // --- Configuration ---
 // Essential environment variables
 const PRIVATE_KEY = process.env.APP_WALLET_PRIVATE_KEY;
 const RPC_URL = process.env.RPC_URL || "https://rpc.moksha.vana.org";
+const CHAIN_ID = process.env.CHAIN_ID || "14800";
 const APP_API_SERVER_URL =
   process.env.APP_API_SERVER_URL ||
   "https://21618d9c4b70b41849aaf75b8bf49277ad9212db-80.dstack-prod5.phala.network";
@@ -31,6 +34,14 @@ const MAX_POLLING_ATTEMPTS = 50; // Max number of status check attempts
 const REFINER_ID = process.env.REFINER_ID
   ? parseInt(process.env.REFINER_ID)
   : 1;
+
+// Setup Ethereum provider and signer wallet
+const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
+
+const walletClient = createWalletClient({
+  account,
+  transport: http(RPC_URL),
+}).extend(publicActions);
 
 const SQL_QUERY = `
   SELECT
@@ -96,12 +107,6 @@ interface User {
   };
 }
 
-function isJobRegisteredEvent(
-  event: LogDescription | null | undefined
-): event is LogDescription & { name: "JobRegistered" } {
-  return event?.name === "JobRegistered";
-}
-
 // --- Initialization ---
 if (!PRIVATE_KEY) {
   // Fatal error if private key is missing
@@ -110,10 +115,6 @@ if (!PRIVATE_KEY) {
   );
   process.exit(1);
 }
-
-// Setup Ethereum provider and signer wallet
-const provider = new JsonRpcProvider(RPC_URL);
-const wallet = new Wallet(PRIVATE_KEY, provider);
 
 // --- Helper Functions ---
 
@@ -124,7 +125,7 @@ const wallet = new Wallet(PRIVATE_KEY, provider);
  */
 const signMessage = async (message: string): Promise<string> => {
   try {
-    const signature = await wallet.signMessage(message);
+    const signature = await account.signMessage({ message });
     return signature;
   } catch (error) {
     console.error("Error signing message:", error);
@@ -142,9 +143,7 @@ const signMessage = async (message: string): Promise<string> => {
  * @throws If the contract interaction or event parsing fails.
  */
 const submitJobToContract = async (): Promise<number> => {
-  const abi = getAbi("ComputeEngineProxy");
-  const contract = new Contract(COMPUTE_ENGINE_ADDRESS, abi, wallet);
-  const fundingAmountWei = ethers.parseEther(JOB_FUNDING_AMOUNT_ETH);
+  const fundingAmountWei = parseEther(JOB_FUNDING_AMOUNT_ETH);
 
   console.log(`Submitting job to contract ${COMPUTE_ENGINE_ADDRESS}...`);
   console.log(
@@ -157,49 +156,41 @@ const submitJobToContract = async (): Promise<number> => {
 
   try {
     // Submit the job transaction
-    const tx = await contract.submitJob(
-      CONTRACT_MAX_TIMEOUT_SECONDS,
-      CONTRACT_GPU_REQUIRED,
-      COMPUTE_INSTRUCTION_ID,
-      { value: fundingAmountWei }
-    );
 
-    console.log(`Contract job submission transaction sent: ${tx.hash}`);
+    const tx = await walletClient.writeContract({
+      address: COMPUTE_ENGINE_ADDRESS as `0x${string}`,
+      abi: getAbi("ComputeEngine"),
+      functionName: "submitJob",
+      args: [
+        BigInt(CONTRACT_MAX_TIMEOUT_SECONDS),
+        CONTRACT_GPU_REQUIRED,
+        BigInt(COMPUTE_INSTRUCTION_ID),
+      ],
+      value: fundingAmountWei,
+      account,
+      chain: chains[CHAIN_ID],
+    });
+
+    console.log(`Contract job submission transaction sent: ${tx}`);
 
     // Wait for the transaction to be confirmed
-    const receipt = await tx.wait();
+
+    const receipt = await walletClient.waitForTransactionReceipt({
+      hash: tx,
+    });
+
     if (!receipt) {
       throw new Error("Transaction receipt is null, confirmation failed.");
     }
     console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
 
-    // Find and parse the JobRegistered event
-    let jobRegisteredEvent: LogDescription | undefined;
-    if (receipt.logs) {
-      for (const log of receipt.logs) {
-        // Ensure log has necessary properties before parsing
-        if (
-          log.address.toLowerCase() === COMPUTE_ENGINE_ADDRESS.toLowerCase()
-        ) {
-          try {
-            const parsedLog = contract.interface.parseLog(log as ethers.Log); // Use ethers.Log type
-            if (isJobRegisteredEvent(parsedLog)) {
-              jobRegisteredEvent = parsedLog;
-              break; // Found the event, no need to check further logs
-            }
-          } catch (parseError) {
-            // Log parsing errors but don't fail the whole process if one log is problematic
-            console.warn(
-              `Could not parse log: ${
-                parseError instanceof Error
-                  ? parseError.message
-                  : String(parseError)
-              }`
-            );
-          }
-        }
-      }
-    }
+    const logs = parseEventLogs({
+      abi: getAbi("ComputeEngine"),
+      eventName: "JobRegistered",
+      logs: receipt.logs,
+    });
+
+    const jobRegisteredEvent = logs[0];
 
     if (!jobRegisteredEvent) {
       console.error(
@@ -212,7 +203,7 @@ const submitJobToContract = async (): Promise<number> => {
     }
 
     // Extract and return the jobId
-    const jobId = Number(jobRegisteredEvent.args[0]); // Convert BigInt to number
+    const jobId = Number(jobRegisteredEvent.args.jobId); // Convert BigInt to number
     console.log(`Successfully registered job ID with contract: ${jobId}`);
     return jobId;
   } catch (error) {
